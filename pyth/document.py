@@ -2,34 +2,35 @@
 Abstract document representation
 """
 
+class _PythBase(object):
 
-class Document(object):
-    """
-    Top-level item. One document is exactly one file.
-    Documents consist of a list of paragraphs.
-    """
-    
-    def __init__(self):
-        self.paragraphs = []
+    def __init__(self, properties={}, content=[]):
+        self.properties = {}
+        self.content = []
+        
+        for (k,v) in properties.iteritems():
+            self[k] = v
 
-
-
-class Paragraph(object):
-    """
-    Paragraphs contain zero or more text runs.
-
-    They cannot contain other paragraphs (but see List).
-
-    They have no text markup properties, but may
-    have rendering properties (e.g. margins)
-    """
-    
-    def __init__(self):
-        self.runs = []
+        for item in content:
+            self.append(item)
 
 
+    def __setitem__(self, key, value):
+        if key not in self.validProperties:
+            raise ValueError("Invalid %s property: %s" % (self.__class__.__name__, repr(key)))
 
-class Text(object):
+        self.properties[key] = value
+
+
+    def append(self, item):
+        if not isinstance(item, self.contentType):
+            raise TypeError("Wrong content type: %s" % repr(type(item)))
+
+        self.content.append(item)
+
+
+
+class Text(_PythBase):
     """
     Text runs are strings of text with markup properties,
     like 'bold' or 'italic' (or 'hyperlink to ...').
@@ -38,27 +39,24 @@ class Text(object):
 
     They do not inherit their properties from anything.
     """
-    
-    def __init__(self, text, properties):
-        """
-        text: A unicode string
 
-        properties: A dictionary of string names to arbitrary values.
-                    e.g. {'bold': True}
-        """
-        self.text = text
-        self.properties = properties
+    validProperties = ('bold', 'italic', 'underline', 'url')
+    contentType = unicode
 
 
 
-class Hyperlink(Text):
+class Paragraph(_PythBase):
     """
-    A text run which links to a URL.
+    Paragraphs contain zero or more text runs.
+
+    They cannot contain other paragraphs (but see List).
+
+    They have no text markup properties, but may
+    have rendering properties (e.g. margins)
     """
 
-    def __init__(self, text, url, properties):
-        Text.__init__(self, text, properties)
-        self.url = url
+    validProperties = ()
+    contentType = Text
 
 
 
@@ -68,6 +66,21 @@ class List(Paragraph):
 
     A List is a Paragraph, so Lists can be nested.
     """
+
+    validProperties = ()
+    contentType = Paragraph
     
-    def __init__(self):
-        self.paragraphs = []
+
+
+class Document(_PythBase):
+    """
+    Top-level item. One document is exactly one file.
+    Documents consist of a list of paragraphs.
+    """
+    
+    validProperties = ()
+    contentType = Paragraph
+
+
+
+

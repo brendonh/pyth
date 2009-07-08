@@ -23,8 +23,19 @@ class _PythBase(object):
 
 
     def append(self, item):
+        okay = True
         if not isinstance(item, self.contentType):
-            raise TypeError("Wrong content type: %s" % repr(type(item)))
+            if hasattr(self.contentType, 'contentType'):
+                try:
+                    item = self.contentType(content=[item])
+                except TypeError:
+                    okay = False
+            else:
+                okay = False
+                
+        if not okay:
+            raise TypeError("Wrong content type for %s: %s" % (
+                self.__class__.__name__, repr(type(item))))                
 
         self.content.append(item)
 

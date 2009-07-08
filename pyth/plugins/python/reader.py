@@ -6,6 +6,11 @@ from pyth.format import PythReader
 from pyth.document import *
 
 
+def _convert(content):
+    if isinstance(content, _PythonBase):
+        return content.toPyth()
+    return content
+
 class PythonReader(PythReader):
 
     @classmethod
@@ -13,7 +18,7 @@ class PythonReader(PythReader):
         """
         source: A list of P objects.
         """
-        return Document(content=[c.toPyth() for c in source])
+        return Document(content=[_convert(c) for c in source])
 
 
 
@@ -63,7 +68,7 @@ class _PythonBase(object):
 
     def toPyth(self):
         return self.pythType(self.properties,
-                             [c.toPyth() for c in self.content])
+                             [_convert(c) for c in self.content])
 
 
     def __getitem__(self, item):
@@ -103,6 +108,7 @@ class L(_PythonBase):
 class T(_PythonBase):
     __metaclass__ = _MetaPythonBase()    
     __repr__ = _PythonBase.__str__
+    pythType = Text
 
     def toPyth(self):
         return Text(self.properties, self.content)

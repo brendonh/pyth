@@ -23,6 +23,20 @@ class _PythBase(object):
 
 
     def append(self, item):
+        """
+        Try to add an item to this element.
+
+        If the item is of the wrong type, and if this element has a sub-type,
+        then try to create such a sub-type and insert the item into that, instead.
+        
+        This happens recursively, so (in python-markup):
+          L [ u'Foo' ]
+        actually creates:
+          L [ LE [ P [ T [ u'Foo' ] ] ] ]
+
+        If that doesn't work, raise a TypeError.
+        """
+
         okay = True
         if not isinstance(item, self.contentType):
             if hasattr(self.contentType, 'contentType'):

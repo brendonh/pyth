@@ -60,6 +60,14 @@ class Paragraph(_PythBase):
 
 
 
+class ListEntry(_PythBase):
+    """
+    A list of paragraphs representing one item in a list
+    """
+    validProperties = ()
+    contentType = Paragraph
+
+
 class List(Paragraph):
     """
     A list of paragraphs which will be rendered as a bullet list.
@@ -68,7 +76,7 @@ class List(Paragraph):
     """
 
     validProperties = ()
-    contentType = Paragraph
+    contentType = ListEntry
     
 
 

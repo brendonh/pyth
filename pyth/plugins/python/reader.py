@@ -91,6 +91,10 @@ class P(_PythonBase):
     pythType = Paragraph
 
 
+class LE(_PythonBase):
+    __metaclass__ = _MetaPythonBase()
+    pythType = ListEntry
+
 class L(_PythonBase):
     __metaclass__ = _MetaPythonBase()    
     pythType = List

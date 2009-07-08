@@ -68,7 +68,7 @@ class _PythonBase(object):
 
     def __getitem__(self, item):
 
-        if isinstance(item, tuple):
+        if isinstance(item, (tuple, list)):
             for i in item: self [i]
         elif isinstance(item, int):
             return self.content[item]
@@ -102,15 +102,3 @@ class T(_PythonBase):
 
     def toPyth(self):
         return Text(self.properties, self.content)
-
-
-
-if __name__ == "__main__":
-    p = P [
-        T(BOLD),
-        T(ITALIC, url=u'http://www.google.com') [ u"Hello World" ],
-        T [ u"Hee hee hee" ] [ u"This seems to work" ]
-    ]
-    
-    doc = PythonReader.read((p,))
-

@@ -3,13 +3,13 @@
 from pyth.plugins.python.reader import *
 
 def buildDoc():
-    return PythonReader.read((
+    return PythonReader.read((        
       P [
-        T(ITALIC) [ u"Hello World, " ],
-        u"hee hee hee! ", T(url=u'http://www.google.com') [ u"This seems to work" ]
+       T(ITALIC, BOLD) [ u"Hello World" ],
+       u", hee hee hee! ", T(url=u'http://www.google.com') [ u"This seems to work" ]
       ],
       L [
-        [unicode(word) for word in ("One", "Two", "Three", "Four")]
+       [unicode(word) for word in ("One", "Two", "Three", "Four")]
       ],
       L [
         u"Introduction",

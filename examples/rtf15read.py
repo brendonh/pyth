@@ -63,3 +63,4 @@ doc = Rtf15Reader.read(content)
 
 import xhtml
 print xhtml.docTemplate % XHTMLWriter.write(doc).getvalue()
+

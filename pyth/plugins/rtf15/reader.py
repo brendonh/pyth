@@ -137,7 +137,14 @@ class Rtf15Reader(PythReader):
             elif isinstance(bit, ReadableMarker):
                 flush()
                 if bit.val:
-                    propStack[-1][bit.name] = True
+
+                    # RTF needs underline markers for hyperlinks,
+                    # but nothing else does. If we're in a hyperlink,
+                    # ignore underlines.
+                    if 'url' in propStack[-1] and bit.name == 'underline':
+                        continue
+                    
+                    propStack[-1][bit.name] = bit.val
                 else:
                     if bit.name in propStack[-1]:
                         del propStack[-1][bit.name]
@@ -263,8 +270,8 @@ class Group(object):
 
             match = re.match(ur'HYPERLINK "(.*)"', destination)
             if match:
-                self.url = match.group(1)
-                self.content = [content]
+                self.content = [ReadableMarker("url", match.group(1)),
+                                content]
                 self._finalize()
             else:
                 return u""

@@ -18,9 +18,15 @@ content = StringIO(r"""
 <body>
   <div>
     <p><strong>Simple document</strong></p>
-    <p>this document has no list nor hypertext links</p>
+    <p>this document has no hypertext links yet.</p>
     <p><strong>bold text.</strong> <em>italic text.</em></p>
     <p>unicode characters : 你好</p>
+    a list
+    <ul>
+      <li>hello</li>
+      <li>bonjour</li>
+      <li>guten tag</li>
+    </ul>
   </div>
 </body>
 </html>

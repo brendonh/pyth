@@ -70,5 +70,15 @@ class XHTMLReader(PythReader):
             new_obj = document.Paragraph()
             obj.append(new_obj)
             obj = new_obj
+        elif node.name == 'ul':
+            # add a new list
+            new_obj = document.List()
+            obj.append(new_obj)
+            obj = new_obj
+        elif node.name == 'li':
+            # add a new list entry
+            new_obj = document.ListEntry()
+            obj.append(new_obj)
+            obj = new_obj
         for child in node:
             self.process_into(child, obj)

@@ -6,6 +6,7 @@ import BeautifulSoup
 
 from pyth import document
 from pyth.format import PythReader
+from pyth.plugins.xhtml.css import CSS
 
 
 class XHTMLReader(PythReader):
@@ -17,10 +18,13 @@ class XHTMLReader(PythReader):
 
     def __init__(self, source):
         self.source = source
+        self.css = CSS()
 
     def go(self):
         soup = BeautifulSoup.BeautifulSoup(self.source)
         doc = document.Document()
+        if soup.style:
+            self.css = CSS(soup.style.string.strip())
         self.process_into(soup.body, doc)
         return doc
 
@@ -29,7 +33,8 @@ class XHTMLReader(PythReader):
         Return true if the BeautifulSoup node needs to be rendered as
         bold.
         """
-        return node.findParent(['b', 'strong']) is not None
+        return (node.findParent(['b', 'strong']) is not None or
+                self.css.is_bold(node.parent))
 
     def is_italic(self, node):
         """

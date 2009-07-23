@@ -13,6 +13,11 @@ content = StringIO(r"""
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>very simple document</title>
+
+    <style>
+        .important {font-weight: bold}
+        .other {font-weight: normal; color: blue}
+    </style>
   </head>
 
 <body>
@@ -20,6 +25,7 @@ content = StringIO(r"""
     <p><strong>Simple document</strong></p>
     <p>this document has no hypertext links yet.</p>
     <p><strong>bold text.</strong> <em>italic text.</em></p>
+    <p class=important>bold text from css style</p>
     <p>unicode characters : 你好</p>
     a list
     <ul>

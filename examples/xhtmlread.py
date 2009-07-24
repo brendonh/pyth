@@ -37,6 +37,9 @@ content = StringIO(r"""
       <li>bonjour</li>
       <li>guten tag</li>
     </ul>
+    <p>
+      <a href=http://www.google.com>a link</a>
+    </p>
   </div>
 </body>
 </html>

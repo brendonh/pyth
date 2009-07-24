@@ -43,6 +43,16 @@ class XHTMLReader(PythReader):
         """
         return node.findParent('em') is not None
 
+    def url(self, node):
+        """
+        return the url of a BeautifulSoup node or None if there is no
+        url.
+        """
+        a_node = node.findParent('a')
+        if not a_node:
+            return None
+        return a_node.get('href')
+
     def process_text(self, node):
         """
         Return a pyth Text object from a BeautifulSoup node or None if
@@ -57,6 +67,8 @@ class XHTMLReader(PythReader):
             properties['bold'] = True
         if self.is_italic(node):
             properties['italic'] = True
+        if self.url(node):
+            properties['url'] = self.url(node)
         content=[node.string]
         return document.Text(properties, content)
 

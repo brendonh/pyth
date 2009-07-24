@@ -11,28 +11,27 @@ class Selector(object):
     """
     Represent a css selector.
 
-    Each subclass should implement the __call__ method that takes a
-    BeautifulSoup node as argument end return True if the selector
-    applies to the node.
+    The __call__ method takes a BeautifulSoup node as argument end
+    return True if the selector applies to the node.
     """
+
+    def __init__(self, tag=None, klass=None):
+        self.tag = tag
+        self.klass = klass
+
+    def check_tag(self, node):
+        return not self.tag or node.findParent(self.tag)
+
+    def check_class(self, node):
+        return not self.klass or node.findParent(attrs={'class': self.klass})
 
     def __call__(self, node):
-        raise NotImplementedError
-
-
-class ClassSelector(object):
-    """
-    Select nodes from there class attribute.
-    """
-
-    def __init__(self, name):
-        self.name = name
-
-    def __call__(self, node):
-        return node.findParent(attrs=self.name)
+        return self.check_tag(node) and self.check_class(node)
 
     def __repr__(self):
-        return ".%s" % self.name
+        tag = self.tag if self.tag else ""
+        klass = ".%s" % self.klass if self.klass else ""
+        return "%s%s" % (tag, klass)
 
 
 class Rule(object):
@@ -60,6 +59,8 @@ class CSS(object):
     ruleset_re = re.compile(r'\s*(.+?)\s+\{(.*?)\}')
     # match a property declaration, e.g: 'font-weight = bold'
     declaration_re = re.compile(r'\s*(.+?):\s*(.+?)\s*?(?:;|$)')
+    # match a selector
+    selector_re = re.compile(r'(.*?)(?:\.(.*))?$')
 
     def __init__(self, source=None):
         self.rules = []
@@ -83,10 +84,11 @@ class CSS(object):
             self.rules.append(rule)
 
     def parse_selector(self, selector):
-        if selector.startswith('.'):
-            return ClassSelector(selector[1:])
-        # Other kind of selectors are not implemented yet
-        raise ValueError
+        """
+        parse a css selector
+        """
+        tag, klass = self.selector_re.match(selector).groups()
+        return Selector(tag, klass)
 
     def get_properties(self, node):
         """

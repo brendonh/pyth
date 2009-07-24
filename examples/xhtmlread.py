@@ -16,6 +16,7 @@ content = StringIO(r"""
 
     <style>
         .important {font-weight: bold}
+        p.bold {font-weight: bold}
         .other {font-weight: normal; color: blue}
     </style>
   </head>
@@ -28,6 +29,7 @@ content = StringIO(r"""
     <p class=important>bold text from css style
       <em> this is bold and italic</em>
     </p>
+    <p class=bold> this is bold too</p>
     <p>unicode characters : 你好</p>
     a list
     <ul>

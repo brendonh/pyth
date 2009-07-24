@@ -29,7 +29,7 @@ class ClassSelector(object):
         self.name = name
 
     def __call__(self, node):
-        return node.get('class') == self.name
+        return node.findParent(attrs=self.name)
 
     def __repr__(self):
         return ".%s" % self.name

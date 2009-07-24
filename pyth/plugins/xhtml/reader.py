@@ -34,7 +34,7 @@ class XHTMLReader(PythReader):
         bold.
         """
         return (node.findParent(['b', 'strong']) is not None or
-                self.css.is_bold(node.parent))
+                self.css.is_bold(node))
 
     def is_italic(self, node):
         """

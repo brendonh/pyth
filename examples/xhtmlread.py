@@ -25,7 +25,9 @@ content = StringIO(r"""
     <p><strong>Simple document</strong></p>
     <p>this document has no hypertext links yet.</p>
     <p><strong>bold text.</strong> <em>italic text.</em></p>
-    <p class=important>bold text from css style</p>
+    <p class=important>bold text from css style
+      <em> this is bold and italic</em>
+    </p>
     <p>unicode characters : 你好</p>
     a list
     <ul>

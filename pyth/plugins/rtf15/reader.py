@@ -32,14 +32,14 @@ class Rtf15Reader(PythReader):
         self.source = source
         self.document = document.Document
 
-        
+
     def go(self):
         self.source.seek(0)
         self.group = Group()
         self.stack = [self.group]
         self.parse()
         return self.build()
-        
+
 
     def parse(self):
         while True:
@@ -93,7 +93,7 @@ class Rtf15Reader(PythReader):
 
             if next in _DIGITS:
                 current = digits
-                        
+
             current.append(next)
 
         return "".join(chars), "".join(digits)
@@ -113,12 +113,12 @@ class Rtf15Reader(PythReader):
         def flush():
             if block[0] is None:
                 block[0] = document.Paragraph()
-                
+
             if run:
                 block[0].content.append(document.Text(propStack[-1].copy(), [u"".join(run)]))
-                
+
             run[:] = []
-        
+
         for bit in self.group.flatten():
 
             if isinstance(bit, unicode):
@@ -130,22 +130,22 @@ class Rtf15Reader(PythReader):
             elif bit is Pop:
                 flush()
                 propStack.pop()
-                
+
             elif isinstance(bit, Para):
                 flush()
                 listStack[-1].append(block[0])
-                
+
                 prevListLevel = listLevel
                 listLevel = bit.listLevel
 
                 if listLevel > prevListLevel:
                     l = document.List()
                     listStack.append(l)
-                    
+
                 elif listLevel < prevListLevel:
                     l = listStack.pop()
                     listStack[-1].append(l)
-                
+
                 block[0] = None
 
             elif bit is Reset:
@@ -161,12 +161,12 @@ class Rtf15Reader(PythReader):
                     # ignore underlines.
                     if 'url' in propStack[-1] and bit.name == 'underline':
                         continue
-                    
+
                     propStack[-1][bit.name] = bit.val
                 else:
                     if bit.name in propStack[-1]:
                         del propStack[-1][bit.name]
-                
+
 
         return doc
 
@@ -182,7 +182,7 @@ class Group(object):
         self.skip = False
         self.url = None
         self.currentParaTag = None
-        
+
         self.content = []
 
 
@@ -200,7 +200,7 @@ class Group(object):
 
     def char(self, char):
         self.content.append(char)
-        
+
 
     def _finalize(self):
 
@@ -213,7 +213,7 @@ class Group(object):
             else:
                 stuff.append(thing)
             i += 1
-                
+
         self.content = stuff
 
 
@@ -225,7 +225,7 @@ class Group(object):
     def flatten(self):
         if self.skip:
             return []
-        
+
         stuff = [Push]
         for thing in self.content:
             if isinstance(thing, Group):
@@ -238,7 +238,7 @@ class Group(object):
 
     def handle_ansi_escape(self, code):
         self.content.append(chr(int(code, 16)).decode("cp1252"))
-        
+
 
     def handle_u(self, codepoint):
         self.content.append(unichr(int(codepoint)))
@@ -261,7 +261,7 @@ class Group(object):
 
     def handle_line(self):
         self.content.append(u"\n")
-    
+
 
     def handle_b(self, onOff=None):
         val = onOff in (None, "", "1")
@@ -287,11 +287,24 @@ class Group(object):
             pass
 
 
+    def handle_up(self, amount):
+        self.content.append(ReadableMarker("super", True))
+
+    def handle_super(self, amount):
+        self.content.append(ReadableMarker("super", True))
+
+    def handle_dn(self, amount):
+        self.content.append(ReadableMarker("sub", True))
+
+    def handle_sub(self, amount):
+        self.content.append(ReadableMarker("sub", True))
+
+
     def handle_field(self):
         def finalize():
             if len(self.content) != 2:
                 return u""
-            
+
             destination, content = self.content
 
             # The destination isn't allowed to contain any controls,
@@ -358,7 +371,7 @@ class Para(ReadableMarker):
 
     def __repr__(self):
         return "!Para:%s!" % self.listLevel
-    
+
 
 Reset = ReadableMarker("Reset")
 

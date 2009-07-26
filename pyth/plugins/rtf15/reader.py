@@ -106,11 +106,17 @@ class Rtf15Reader(PythReader):
         propStack = [{}]
         block = [None]
 
+        prevListLevel = None
+        listLevel = None
+        listStack = [doc]
+
         def flush():
             if block[0] is None:
                 block[0] = document.Paragraph()
+                
             if run:
                 block[0].content.append(document.Text(propStack[-1].copy(), [u"".join(run)]))
+                
             run[:] = []
         
         for bit in self.group.flatten():
@@ -125,9 +131,21 @@ class Rtf15Reader(PythReader):
                 flush()
                 propStack.pop()
                 
-            elif bit is Para:
+            elif isinstance(bit, Para):
                 flush()
-                doc.content.append(block[0])
+                listStack[-1].append(block[0])
+                
+                prevListLevel = listLevel
+                listLevel = bit.listLevel
+
+                if listLevel > prevListLevel:
+                    l = document.List()
+                    listStack.append(l)
+                    
+                elif listLevel < prevListLevel:
+                    l = listStack.pop()
+                    listStack[-1].append(l)
+                
                 block[0] = None
 
             elif bit is Reset:
@@ -163,6 +181,7 @@ class Group(object):
 
         self.skip = False
         self.url = None
+        self.currentParaTag = None
         
         self.content = []
 
@@ -227,7 +246,9 @@ class Group(object):
 
 
     def handle_par(self):
-        self.content.append(Para)
+        p = Para()
+        self.content.append(p)
+        self.currentParaTag = p
 
 
     def handle_pard(self):
@@ -255,6 +276,15 @@ class Group(object):
     def handle_ul(self, onOff=None):
         val = onOff in (None, "", "1")
         self.content.append(ReadableMarker("underline", val))
+
+
+    def handle_ilvl(self, level):
+        if self.currentParaTag is not None:
+            self.currentParaTag.listLevel = level
+        else:
+            # Well, now we're in trouble. But I'm pretty sure this
+            # isn't supposed to happen anyway.
+            pass
 
 
     def handle_field(self):
@@ -299,6 +329,7 @@ class Group(object):
     handle_info = ignore
     handle_docfmt = ignore
     handle_pgdsctbl = ignore
+    handle_listtext = ignore
 
 
 
@@ -318,7 +349,17 @@ class ReadableMarker(object):
         else:
             return "!%s::%s!" % (self.name, self.val)
 
-Para = ReadableMarker("Para")
+
+class Para(ReadableMarker):
+    listLevel = None
+
+    def __init__(self):
+        ReadableMarker.__init__(self, "Para")
+
+    def __repr__(self):
+        return "!Para:%s!" % self.listLevel
+    
+
 Reset = ReadableMarker("Reset")
 
 Push = ReadableMarker("Push")

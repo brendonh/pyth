@@ -8,23 +8,11 @@ from cStringIO import StringIO
 
 # A simple xhtml document with limited features.
 content = StringIO(r"""
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>very simple document</title>
-
-    <style>
-        .important {font-weight: bold}
-        p.bold {font-weight: bold}
-        .other {font-weight: normal; color: blue}
-    </style>
-  </head>
-
-<body>
   <div>
     <p><strong>Simple document</strong></p>
-    <p>this document has no hypertext links yet.</p>
+    <p><i>this document has
+
+    </i>no hypertext links yet.</p>
     <p><strong>bold text.</strong> <em>italic text.</em></p>
     <p class=important>bold text from css style
       <em> this is bold and italic</em>
@@ -41,8 +29,6 @@ content = StringIO(r"""
       <a href=http://www.google.com>a link</a>
     </p>
   </div>
-</body>
-</html>
 """)
 
 if __name__ == '__main__':

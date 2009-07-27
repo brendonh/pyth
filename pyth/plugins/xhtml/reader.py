@@ -25,7 +25,7 @@ class XHTMLReader(PythReader):
         doc = document.Document()
         if soup.style:
             self.css = CSS(soup.style.string.strip())
-        self.process_into(soup.body, doc)
+        self.process_into(soup, doc)
         return doc
 
     def is_bold(self, node):

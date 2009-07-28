@@ -22,11 +22,31 @@ class XHTMLReader(PythReader):
 
     def go(self):
         soup = BeautifulSoup.BeautifulSoup(self.source)
+        # Make sure the document content doesn't use multi-lines
+        soup = self.format(soup)
         doc = document.Document()
         if soup.style:
             self.css = CSS(soup.style.string.strip())
         self.process_into(soup, doc)
         return doc
+
+    def format(self, soup):
+        """format a BeautifulSoup document
+
+        This will transform the block elements content from
+        multi-lines text into single line.
+
+        This allow us to avoid having to deal with further text
+        rendering once this step has been done.
+        """
+        # TODO: ignore all new lines just after or before a tag
+        for tag in ['p', 'li']:
+            for node in soup.findAll(tag):
+                text = unicode(node)
+                lines = [x.strip() for x in text.splitlines()]
+                text = ' '.join(lines)
+                node.replaceWith(text)
+        return BeautifulSoup.BeautifulSoup(unicode(soup))
 
     def is_bold(self, node):
         """

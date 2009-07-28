@@ -21,7 +21,8 @@ content = StringIO(r"""
     <p>unicode characters : 你好</p>
     a list
     <ul>
-      <li>hello</li>
+      <li>hello
+      test</li>
       <li>bonjour</li>
       <li>guten tag</li>
     </ul>

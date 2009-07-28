@@ -12,21 +12,23 @@ from pyth.plugins.xhtml.css import CSS
 class XHTMLReader(PythReader):
 
     @classmethod
-    def read(self, source):
-        reader = XHTMLReader(source)
+    def read(self, source, css_source=None):
+        reader = XHTMLReader(source, css_source)
         return reader.go()
 
-    def __init__(self, source):
+    def __init__(self, source, css_source=None):
         self.source = source
-        self.css = CSS()
+        self.css_source = css_source
 
     def go(self):
         soup = BeautifulSoup.BeautifulSoup(self.source)
         # Make sure the document content doesn't use multi-lines
         soup = self.format(soup)
         doc = document.Document()
-        if soup.style:
-            self.css = CSS(soup.style.string.strip())
+        if self.css_source:
+            self.css = CSS(self.css_source)
+        else:
+            self.css = CSS()    # empty css
         self.process_into(soup, doc)
         return doc
 

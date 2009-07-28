@@ -19,6 +19,7 @@ content = StringIO(r"""
     </p>
     <p class=bold> this is bold too</p>
     <p>unicode characters : 你好</p>
+    <p style="font-weight: bold">bold too</p>
     a list
     <ul>
       <li>hello

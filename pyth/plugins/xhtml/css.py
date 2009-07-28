@@ -104,9 +104,15 @@ class CSS(object):
         node found by applying the css style.
         """
         ret = {}
+        # Try all the rules one by one
         for rule in self.rules:
             if rule.selector(node):
                 ret.update(rule.properties)
+        # Also search for direct 'style' arguments in the html doc
+        for style_node in node.findParents(attrs={'style': True}):
+            style = style_node.get('style')
+            properties = self.parse_declarations(style)
+            ret.update(properties)
         return ret
 
     def is_bold(self, node):

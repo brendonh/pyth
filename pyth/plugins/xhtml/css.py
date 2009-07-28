@@ -67,6 +67,9 @@ class CSS(object):
         if source:
             self.parse_css(source)
 
+    def __repr__(self):
+        return repr(self.rules)
+
     def parse_css(self, css):
         """
         Parse a css style sheet into the CSS object.
@@ -78,10 +81,15 @@ class CSS(object):
         rulesets = self.ruleset_re.findall(css)
         for (selector, declarations) in rulesets:
             rule = Rule(self.parse_selector(selector))
-            declarations = self.declaration_re.findall(declarations)
-            for (property, value) in declarations:
-                rule.properties[property] = value
+            rule.properties = self.parse_declarations(declarations)
             self.rules.append(rule)
+
+    def parse_declarations(self, declarations):
+        """
+        parse a css declaration list
+        """
+        declarations = self.declaration_re.findall(declarations)
+        return dict(declarations)
 
     def parse_selector(self, selector):
         """

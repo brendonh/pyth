@@ -21,7 +21,8 @@ class XHTMLReader(PythReader):
         self.css_source = css_source
 
     def go(self):
-        soup = BeautifulSoup.BeautifulSoup(self.source)
+        soup = BeautifulSoup.BeautifulSoup(self.source,
+                                           convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES)
         # Make sure the document content doesn't use multi-lines
         soup = self.format(soup)
         doc = document.Document()
@@ -63,7 +64,7 @@ class XHTMLReader(PythReader):
         Return true if the BeautifulSoup node needs to be rendered as
         italic.
         """
-        return node.findParent('em') is not None
+        return node.findParent(['em', 'i']) is not None
 
     def url(self, node):
         """

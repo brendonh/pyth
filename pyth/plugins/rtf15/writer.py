@@ -98,7 +98,7 @@ class Rtf15Writer(PythWriter):
     def _getFontTable(self):
         output = [r'{\fonttbl']
         for i, (fontFamily, fontName) in enumerate(self.fonts.iteritems()):
-            output.append(r'{\f%d\f%s %s}' % (i, fontFamily, fontName))
+            output.append(r'{\f%d\f%s %s;}' % (i, fontFamily, fontName))
             if fontFamily == self.fontFamily:
                 self.fontNumber = i
 
@@ -254,7 +254,8 @@ class Rtf15Writer(PythWriter):
                     self.target.write(r'\u%d?' % point)
             
         if props:
-            self.target.write('\plain ')
+            self.target.write("".join("%s0" % p for p in props) + " ")
+            #self.target.write('\pard ')
 
         if 'url' in text.properties:
             self.target.write('}}')

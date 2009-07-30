@@ -53,7 +53,12 @@ class XHTMLReader(PythReader):
                 lines = [x.strip() for x in text.splitlines()]
                 text = ' '.join(lines)
                 node.replaceWith(text)
-        return BeautifulSoup.BeautifulSoup(unicode(soup))
+        soup = BeautifulSoup.BeautifulSoup(unicode(soup))
+        # replace all <br/> tag by newline character
+        for node in soup.findAll('br'):
+            node.replaceWith("\n")
+        soup = BeautifulSoup.BeautifulSoup(unicode(soup))
+        return soup
 
     def is_bold(self, node):
         """

@@ -30,6 +30,7 @@ content = StringIO(r"""
     <p>
       <a href=http://www.google.com>a link
       </a> single space here.
+      <br/>a br tag
     </p>
   </div>
 """)

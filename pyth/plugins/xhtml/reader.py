@@ -42,7 +42,11 @@ class XHTMLReader(PythReader):
         This allow us to avoid having to deal with further text
         rendering once this step has been done.
         """
-        # TODO: ignore all new lines just after or before a tag
+        # Remove all the newline characters before a closing tag.
+        for node in soup.findAll(text=True):
+            if node.rstrip(" ").endswith("\n"):
+                node.replaceWith(node.rstrip(" ").rstrip("\n"))
+        # Join the block elements lines into a single long line
         for tag in ['p', 'li']:
             for node in soup.findAll(tag):
                 text = unicode(node)

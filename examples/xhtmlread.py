@@ -28,7 +28,8 @@ content = StringIO(r"""
       <li>guten tag</li>
     </ul>
     <p>
-      <a href=http://www.google.com>a link</a>
+      <a href=http://www.google.com>a link
+      </a> single space here.
     </p>
   </div>
 """)

@@ -20,6 +20,10 @@ content = StringIO(r"""
     <p class=bold> this is bold too</p>
     <p>unicode characters : 你好</p>
     <p style="font-weight: bold">bold too</p>
+    <p>
+      example<span style="vertical-align: super"> super </span>
+      example<span style="vertical-align: sub"> sub </span>
+    </p>
     a list
     <ul>
       <li>hello

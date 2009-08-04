@@ -122,3 +122,11 @@ class CSS(object):
         """
         properties = self.get_properties(node)
         return properties.get('font-weight') == 'bold'
+
+    def is_sub(self, node):
+        properties = self.get_properties(node)
+        return properties.get('vertical-align') == 'sub'
+
+    def is_super(self, node):
+        properties = self.get_properties(node)
+        return properties.get('vertical-align') == 'super'

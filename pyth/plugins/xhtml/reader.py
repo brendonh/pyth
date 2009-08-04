@@ -75,6 +75,20 @@ class XHTMLReader(PythReader):
         """
         return node.findParent(['em', 'i']) is not None
 
+    def is_sub(self, node):
+        """
+        Return true if the BeautifulSoup node needs to be rendered as
+        sub.
+        """
+        return self.css.is_sub(node)
+
+    def is_super(self, node):
+        """
+        Return true if the BeautifulSoup node needs to be rendered as
+        super.
+        """
+        return self.css.is_super(node)
+
     def url(self, node):
         """
         return the url of a BeautifulSoup node or None if there is no
@@ -90,10 +104,11 @@ class XHTMLReader(PythReader):
         Return a pyth Text object from a BeautifulSoup node or None if
         the text is empty.
         """
-        assert isinstance(node, BeautifulSoup.NavigableString)
         text = node.string.strip()
         if not text:
             return
+
+        # Set all the properties
         properties=dict()
         if self.is_bold(node):
             properties['bold'] = True
@@ -101,6 +116,11 @@ class XHTMLReader(PythReader):
             properties['italic'] = True
         if self.url(node):
             properties['url'] = self.url(node)
+        if self.is_sub(node):
+            properties['sub'] = True
+        if self.is_super(node):
+            properties['super'] = True
+
         content=[node.string]
         return document.Text(properties, content)
 

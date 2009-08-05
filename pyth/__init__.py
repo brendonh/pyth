@@ -10,6 +10,7 @@ writerMap = {
     '.html': 'pyth.plugins.xhtml.writer.XHTMLWriter',
     '.xhtml': 'pyth.plugins.xhtml.writer.XHTMLWriter',
     '.txt': 'pyth.plugins.plaintext.writer.PlaintextWriter',
+    '.pdf': 'pyth.plugins.pdf.writer.PDFWriter',
 }
 
 

@@ -32,10 +32,12 @@ class Paragraph(object):
     They contains :
     - text : the text of the paragraph (with rml markup tags)
     - level : the indentation level of the paragraph
+    - bullet : True if the paragraph is the first in a list
     """
-    def __init__(self, text, level=0):
+    def __init__(self, text, level=0, bullet=False):
         self.text = text
         self.level = level
+        self.bullet = bullet
 
     def __repr__(self):
         return repr(self.text)
@@ -133,7 +135,10 @@ class PDFWriter(PythWriter):
         level = level + 1
         paragraphs = []
         for t in list.content:
-            paragraphs += self._list_entry(t, level=level)
+            entries = self._list_entry(t, level=level)
+            if entries:
+                entries[0].bullet = True
+            paragraphs += entries
         return paragraphs
 
     def _list_entry(self, entry, level=0):

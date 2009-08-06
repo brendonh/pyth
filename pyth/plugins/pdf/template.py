@@ -19,6 +19,9 @@ default_template = """
 
 % for p in document.paragraphs:
     <para style="p" leftIndent="${p.level}cm">
+% if p.bullet:
+    <bullet>-</bullet>
+% endif
        ${p.text}
     </para>
 % endfor

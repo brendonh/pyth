@@ -118,7 +118,9 @@ class PDFWriter(PythWriter):
         Convert a pyth text object to a valid rml code
         """
         tags = []
-        for prop in text.properties:
+        for prop, value in text.properties.items():
+            if prop == "url":
+                tags.append(('<link destination="%s">' % value, "</link>"))
             if prop in _tagNames:
                 tag = _tagNames[prop]
                 tags.append(("<%s>" % tag, "</%s>" % tag))

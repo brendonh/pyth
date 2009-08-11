@@ -48,6 +48,10 @@ class RSTWriter(PythWriter):
             return u"**%s**" % ret
         if 'italic' in text.properties:
             return u"*%s*" % ret
+        if 'sub' in text.properties:
+            return ur"\ :sub:`%s`\ " % ret
+        if 'super' in text.properties:
+            return ur"\ :sup:`%s`\ " % ret
         return ret
 
     def paragraph(self, paragraph, prefix=""):

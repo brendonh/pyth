@@ -232,7 +232,12 @@ class Rtf15Writer(PythWriter):
                 % text.properties['url'])
 
         props = []
-        
+
+        if 'super' in text.properties:
+            self.target.write('{\up9 ')
+        elif 'sub' in text.properties:
+            self.target.write('{\dn9 ')
+
         for prop in text.properties:
             if prop in _styleFlags:
                 props.append(_styleFlags[prop])
@@ -255,7 +260,9 @@ class Rtf15Writer(PythWriter):
             
         if props:
             self.target.write("".join("%s0" % p for p in props) + " ")
-            #self.target.write('\pard ')
+
+        if 'super' in text.properties or 'sub' in text.properties:
+            self.target.write("}")
 
         if 'url' in text.properties:
             self.target.write('}}')

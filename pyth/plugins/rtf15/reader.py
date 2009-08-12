@@ -12,7 +12,7 @@ from pyth import document
 from pyth.format import PythReader
 
 
-_CONTROLCHARS = set(string.lowercase + string.digits + "-*")
+_CONTROLCHARS = set(string.ascii_lowercase + string.digits + "-*")
 _DIGITS = set(string.digits)
 
 

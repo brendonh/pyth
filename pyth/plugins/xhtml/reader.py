@@ -12,17 +12,20 @@ from pyth.plugins.xhtml.css import CSS
 class XHTMLReader(PythReader):
 
     @classmethod
-    def read(self, source, css_source=None):
-        reader = XHTMLReader(source, css_source)
+    def read(self, source, css_source=None, encoding="utf-8"):
+        reader = XHTMLReader(source, css_source, encoding)
         return reader.go()
 
-    def __init__(self, source, css_source=None):
+    def __init__(self, source, css_source=None, encoding="utf-8"):
         self.source = source
         self.css_source = css_source
+        self.encoding = encoding
 
     def go(self):
         soup = BeautifulSoup.BeautifulSoup(self.source,
-                                           convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES)
+                                           convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES,
+                                           fromEncoding=self.encoding,
+                                           smartQuotesTo=None)
         # Make sure the document content doesn't use multi-lines
         soup = self.format(soup)
         doc = document.Document()
@@ -73,21 +76,24 @@ class XHTMLReader(PythReader):
         Return true if the BeautifulSoup node needs to be rendered as
         italic.
         """
-        return node.findParent(['em', 'i']) is not None
+        return (node.findParent(['em', 'i']) is not None
+                or self.css.is_italic(node))
 
     def is_sub(self, node):
         """
         Return true if the BeautifulSoup node needs to be rendered as
         sub.
         """
-        return self.css.is_sub(node)
+        return (node.findParent(['sub']) is not None
+                or self.css.is_sub(node))
 
     def is_super(self, node):
         """
         Return true if the BeautifulSoup node needs to be rendered as
         super.
         """
-        return self.css.is_super(node)
+        return (node.findParent(['sup']) is not None
+                or self.css.is_super(node))
 
     def url(self, node):
         """
@@ -122,6 +128,7 @@ class XHTMLReader(PythReader):
             properties['super'] = True
 
         content=[node.string]
+
         return document.Text(properties, content)
 
     def process_into(self, node, obj):

@@ -123,6 +123,10 @@ class CSS(object):
         properties = self.get_properties(node)
         return properties.get('font-weight') == 'bold'
 
+    def is_italic(self, node):
+        properties = self.get_properties(node)
+        return properties.get('font-style') == 'italic'
+
     def is_sub(self, node):
         properties = self.get_properties(node)
         return properties.get('vertical-align') == 'sub'
@@ -130,3 +134,4 @@ class CSS(object):
     def is_super(self, node):
         properties = self.get_properties(node)
         return properties.get('vertical-align') == 'super'
+

@@ -21,6 +21,11 @@ class _PythBase(object):
 
         self.properties[key] = value
 
+    def __getitem__(self, key):
+        if key not in self.validProperties:
+            raise ValueError("Invalid %s property: %s" %
+                             (self.__class__.__name__, repr(key)))
+        return self.properties.get(key)
 
     def append(self, item):
         """

@@ -31,8 +31,8 @@ class LatexWriter(PythWriter):
         rst = RSTWriter.write(self.document).getvalue()
         settings = dict(input_encoding="UTF-8",
                         output_encoding="UTF-8")
-        latex = docutils.core.publish_file(StringIO(rst),
-                                           writer_name="latex",
-                                           settings_overrides=settings)
+        latex = docutils.core.publish_string(rst,
+                                             writer_name="latex",
+                                             settings_overrides=settings)
         self.target.write(latex)
         return self.target

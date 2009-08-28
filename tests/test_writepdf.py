@@ -1,4 +1,3 @@
-
 """
 unit tests of the pdf writer
 """
@@ -8,9 +7,11 @@ import subprocess
 import tempfile
 import os
 import sys
+import BeautifulSoup
 
 from pyth.plugins.pdf.writer import PDFWriter
 from pyth.plugins.python.reader import *
+
 
 class TestWritePDF(unittest.TestCase):
 
@@ -43,15 +44,39 @@ class TestWritePDF(unittest.TestCase):
             os.remove(filename)
 
     def test_basic(self):
+        """
+        Try to create an empty pdf document
+        """
         doc = PythonReader.read([])
         pdf = PDFWriter.write(doc).getvalue()
         html = self.pdf_to_html(pdf)
 
     def test_paragraph(self):
+        """
+        Try a simple document with one paragraph
+        """
         doc = PythonReader.read(P[u"the text"])
         pdf = PDFWriter.write(doc).getvalue()
         html = self.pdf_to_html(pdf)
         assert "the text" in html
-        
+
+    def test_bold(self):
+        doc = PythonReader.read([P[T(BOLD)[u"bold text"]]])
+        pdf = PDFWriter.write(doc).getvalue()
+        html = self.pdf_to_html(pdf)
+        soup = BeautifulSoup.BeautifulSoup(html)
+        node = soup.find("b")
+        assert node
+        assert node.string == "bold text"
+
+    def test_italic(self):
+        doc = PythonReader.read([P[T(ITALIC)[u"italic text"]]])
+        pdf = PDFWriter.write(doc).getvalue()
+        html = self.pdf_to_html(pdf)
+        soup = BeautifulSoup.BeautifulSoup(html)
+        node = soup.find("i")
+        assert node
+        assert node.string == "italic text"
+
 if __name__ == '__main__':
     unittest.main()

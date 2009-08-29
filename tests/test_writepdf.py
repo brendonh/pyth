@@ -80,10 +80,17 @@ class TestWritePDF(unittest.TestCase):
 
     def test_latex(self):
         doc = PythonReader.read(P[u"the-text"])
-        pdf = PDFWriter.write(doc, from_latex=True).getvalue()
+        pdf = PDFWriter.write(doc, method='latex').getvalue()
         html = self.pdf_to_html(pdf)
         assert "the-text" in html, html
-        
+
+    def test_rst(self):
+        doc = PythonReader.read(P[u"the-text"])
+        pdf = PDFWriter.write(doc, method='rst').getvalue()
+        print pdf
+        html = self.pdf_to_html(pdf)
+        assert "the-text" in html, html
+
 
 if __name__ == '__main__':
     unittest.main()

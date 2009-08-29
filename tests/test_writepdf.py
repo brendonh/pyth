@@ -78,5 +78,12 @@ class TestWritePDF(unittest.TestCase):
         assert node
         assert node.string == "italic text"
 
+    def test_latex(self):
+        doc = PythonReader.read(P[u"the-text"])
+        pdf = PDFWriter.write(doc, from_latex=True).getvalue()
+        html = self.pdf_to_html(pdf)
+        assert "the-text" in html, html
+        
+
 if __name__ == '__main__':
     unittest.main()

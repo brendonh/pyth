@@ -58,16 +58,26 @@ class Document(object):
 class PDFWriter(PythWriter):
 
     @classmethod
-    def write(klass, document, target=None):
+    def write(klass, document, template=None, target=None, from_latex=False):
         """
         convert a pyth document to a pdf document
         """
-        # TODO: add a mako template argument
-        writer = PDFWriter(document, target)
+        writer = PDFWriter(document, template, target, from_latex)
         return writer.go()
 
-    def __init__(self, doc, template=None, target=None):
+    def __init__(self, doc, template=None, target=None, from_latex=False):
+        """Create a writer that produces a pdf document
+
+        The template argument will be used to produce the intermediary
+        rml file that will be used to create the pdf document.  If it
+        is not set a default template will be used.
+
+        if from_latex is true, then we generate the pdf file using
+        latex instead of reportlab.
+        """
         self.document = doc
+        self.from_latex = from_latex
+        
         template = template or _default_template
         self.template = mako.template.Template(
             template,
@@ -81,6 +91,11 @@ class PDFWriter(PythWriter):
             document.Paragraph: self._paragraph}
 
     def go(self):
+        
+        if self.from_latex:
+            from pyth.plugins.pdf.latex_writer import PDFFromLatexWriter
+            return PDFFromLatexWriter.write(self.document, self.target)
+        
         # generate the list of Paragraph instances
         paragraphs = []
         for e in self.document.content:

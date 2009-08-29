@@ -39,3 +39,17 @@ class TestWriteLatex(unittest.TestCase):
         doc = PythonReader.read([P[T(ITALIC)[u"italic text"]]])
         latex = LatexWriter.write(doc).getvalue()
         assert r"\emph{italic text}" in latex, latex
+
+    def test_metadata(self):
+        """
+        assert that the document metadata are added into the latex file
+        """
+        doc = PythonReader.read([])
+        doc["author"] = "The Author"
+        doc["subject"] = "The Subject"
+        doc["title"] = "The Title"
+
+        latex = LatexWriter.write(doc).getvalue()
+        assert "pdfauthor={The Author}" in latex, latex
+        assert "pdfsubject={The Subject}" in latex, latex
+        assert "pdftitle={The Title}" in latex, latex

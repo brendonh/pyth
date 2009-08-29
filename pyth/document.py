@@ -116,9 +116,5 @@ class Document(_PythBase):
     Documents consist of a list of paragraphs.
     """
     
-    validProperties = ()
+    validProperties = ('title', 'subject', 'author')
     contentType = Paragraph
-
-
-
-

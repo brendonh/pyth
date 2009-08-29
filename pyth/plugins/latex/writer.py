@@ -16,11 +16,15 @@ from pyth.plugins.rst.writer import RSTWriter
 class LatexWriter(PythWriter):
 
     @classmethod
-    def write(klass, document, target=None):
+    def write(klass, document, target=None, stylesheet=""):
         """
         convert a pyth document to a latex document
+
+        we can specify a stylesheet as a latex document fragment that
+        will be inserted after the headers.  This way we can override
+        the default style.
         """
-        writer = LatexWriter(document, target)
+        writer = LatexWriter(document, target, stylesheet)
         return writer.go()
 
     def __init__(self, doc, target=None, stylesheet=""):

@@ -303,13 +303,13 @@ class Group(object):
     def handle_up(self, amount):
         self.content.append(ReadableMarker("super", True))
 
-    def handle_super(self, amount):
+    def handle_super(self):
         self.content.append(ReadableMarker("super", True))
 
     def handle_dn(self, amount):
         self.content.append(ReadableMarker("sub", True))
 
-    def handle_sub(self, amount):
+    def handle_sub(self):
         self.content.append(ReadableMarker("sub", True))
 
     def handle_emdash(self):
@@ -342,8 +342,13 @@ class Group(object):
             destination, content = self.content
 
             # The destination isn't allowed to contain any controls,
-            # so this should be safe
-            destination = u"".join(destination.content)
+            # so this should be safe.
+            # Except when it isn't, like this:
+            # {\field{\*\fldinst {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15420660  PAGE   \\* MERGEFORMAT }}
+            try:
+                destination = u"".join(destination.content)
+            except:
+                return u""
 
             match = re.match(ur'HYPERLINK "(.*)"', destination)
             if match:
@@ -373,6 +378,16 @@ class Group(object):
     handle_revtbl = ignore
 
     handle_mmath = ignore
+
+    handle_header = ignore
+    handle_footer = ignore
+    handle_headerl = ignore
+    handle_headerr = ignore
+    handle_headerf = ignore
+    handle_footerl = ignore
+    handle_footerr = ignore
+    handle_footerf = ignore
+
 
     # Document
     handle_info = ignore

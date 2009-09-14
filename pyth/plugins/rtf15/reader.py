@@ -15,6 +15,43 @@ from pyth.format import PythReader
 _CONTROLCHARS = set(string.ascii_lowercase + string.digits + "-*")
 _DIGITS = set(string.digits)
 
+_CODEPAGES = {
+    0: "cp1252",   # ANSI
+    1: "cp1252",   # Default (this is wrong, but there is no right)
+
+    # Does Python have built-in support for these? What is it?
+    # 2: "42",     # Symbol
+    # 77: "10000", # Mac Roman
+    # 78: "10001", # Mac Shift Jis
+    # 79: "10003", # Mac Hangul
+    # 80: "10008", # Mac GB2312
+    # 81: "10002", # Mac Big5
+    # 83: "10005", # Mac Hebrew
+    # 84: "10004", # Mac Arabic
+    # 85: "10006", # Mac Greek
+    # 86: "10081", # Mac Turkish
+    # 87: "10021", # Mac Thai
+    # 88: "10029", # Mac East Europe
+    # 89: "10007", # Mac Russian
+
+    128: "cp932",  # Shift JIS
+    129: "cp949",  # Hangul
+    130: "cp1361", # Johab
+    134: "cp936",  # GB2312
+    136: "cp950",  # Big5
+    161: "cp1253", # Greek
+    162: "cp1254", # Turkish
+    163: "cp1258", # Vietnamese
+    177: "cp1255", # Hebrew
+    178: "cp1256", # Arabic 
+    186: "cp1257", # Baltic
+    204: "cp1251", # Russian
+    222: "cp874",  # Thai
+    238: "cp1250", # Eastern European
+    254: "cp437",  # PC 437
+    255: "cp850",  # OEM
+}
+
 
 class Rtf15Reader(PythReader):
 
@@ -36,6 +73,7 @@ class Rtf15Reader(PythReader):
     def go(self):
         self.source.seek(0)
         self.group = Group()
+        self.charsetTable = None
         self.stack = [self.group]
         self.parse()
         return self.build()
@@ -51,12 +89,16 @@ class Rtf15Reader(PythReader):
             if next in '\r\n':
                 continue
             if next == '{':
-                subGroup = Group(self.group)
+                subGroup = Group(self.group, self.charsetTable)
                 self.stack.append(subGroup)
                 self.group = subGroup
             elif next == '}':
                 subGroup = self.stack.pop()
                 subGroup.finalize()
+
+                if subGroup.specialMeaning == 'FONT_TABLE':
+                    self.charsetTable = subGroup.charsetTable
+
                 self.group = self.stack[-1]
                 self.group.content.append(subGroup)
             elif next == '\\':
@@ -174,16 +216,23 @@ class Rtf15Reader(PythReader):
 
 class Group(object):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, charsetTable=None):
+        self.parent = parent
+
         if parent:
             self.props = parent.props.copy()
+            self.charset = self.parent.charset
         else:
             self.props = {}
+            self.charset = 'cp1252' # ?
 
+        self.specialMeaning = None
         self.skip = False
         self.url = None
         self.currentParaTag = None
         self.destination = False
+
+        self.charsetTable = charsetTable
 
         self.content = []
 
@@ -213,8 +262,11 @@ class Group(object):
         if self.destination:
             self.skip = True
 
+        if self.specialMeaning is not None:
+            self.skip = True
+
         if self.skip:
-            return
+            return       
 
         stuff = []
         i = 0
@@ -249,8 +301,28 @@ class Group(object):
         return stuff
 
 
+    def handle_fonttbl(self):
+        self.specialMeaning = 'FONT_TABLE'
+        self.charsetTable = {}
+
+
+    def handle_f(self, fontNum):
+        if self.parent.specialMeaning == 'FONT_TABLE':
+            self.fontNum = int(fontNum)
+        elif self.charsetTable is not None:
+            self.charset = self.charsetTable[int(fontNum)]
+
+            
+    def handle_fcharset(self, charsetNum):
+        if self.parent.specialMeaning == 'FONT_TABLE':
+            # Theoretically, \fN should always be before \fcharsetN
+            # I don't really expect that will always be true, but let's crash
+            # if it's not, and see if it happens in the real world.
+            self.parent.charsetTable[self.fontNum] = _CODEPAGES.get(int(charsetNum))
+
+
     def handle_ansi_escape(self, code):
-        self.content.append(chr(int(code, 16)).decode("cp1252"))
+        self.content.append(chr(int(code, 16)).decode(self.charset))
 
 
     def handle_u(self, codepoint):
@@ -369,7 +441,6 @@ class Group(object):
 
 
     # Header
-    handle_fonttbl = ignore
     handle_filetbl = ignore
     handle_colortbl = ignore
     handle_stylesheet = ignore

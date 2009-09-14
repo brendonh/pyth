@@ -48,7 +48,7 @@ class Rtf15Reader(PythReader):
             if not next:
                 break
 
-            if next == '\n':
+            if next in '\r\n':
                 continue
             if next == '{':
                 subGroup = Group(self.group)
@@ -133,7 +133,8 @@ class Rtf15Reader(PythReader):
 
             elif isinstance(bit, Para):
                 flush()
-                listStack[-1].append(block[0])
+                if block[0].content:
+                    listStack[-1].append(block[0])
 
                 prevListLevel = listLevel
                 listLevel = bit.listLevel
@@ -182,11 +183,16 @@ class Group(object):
         self.skip = False
         self.url = None
         self.currentParaTag = None
+        self.destination = False
 
         self.content = []
 
 
     def handle(self, control, digits):
+
+        if control == '*':
+            self.destination = True
+            return
 
         handler = getattr(self, 'handle_%s' % control, None)
         if handler is None:
@@ -203,6 +209,12 @@ class Group(object):
 
 
     def _finalize(self):
+
+        if self.destination:
+            self.skip = True
+
+        if self.skip:
+            return
 
         stuff = []
         i = 0
@@ -233,6 +245,7 @@ class Group(object):
             else:
                 stuff.append(thing)
         stuff.append(Pop)
+
         return stuff
 
 
@@ -299,6 +312,27 @@ class Group(object):
     def handle_sub(self, amount):
         self.content.append(ReadableMarker("sub", True))
 
+    def handle_emdash(self):
+        self.content.append(u'\u2014')
+
+    def handle_endash(self):
+        self.content.append(u'\u2013')
+
+    def handle_lquote(self):
+        self.content.append(u'\u2018')
+
+    def handle_rquote(self):
+        self.content.append(u'\u2019')
+
+    def handle_ldblquote(self):
+        self.content.append(u'\u201C')
+
+    def handle_rdblquote(self):
+        self.content.append(u'\u201D')
+
+
+
+
 
     def handle_field(self):
         def finalize():
@@ -338,11 +372,14 @@ class Group(object):
     handle_listoverridetable = ignore
     handle_revtbl = ignore
 
+    handle_mmath = ignore
+
     # Document
     handle_info = ignore
     handle_docfmt = ignore
     handle_pgdsctbl = ignore
     handle_listtext = ignore
+
 
 
 

@@ -20,18 +20,32 @@ _tagNames = {
 class XHTMLWriter(PythWriter):
 
     @classmethod
-    def write(klass, document, target=None, cssClasses=True):
+    def write(klass, document, target=None, cssClasses=True, pretty=False):
         if target is None:
             target = StringIO()
 
-        writer = XHTMLWriter(document, target, cssClasses)
-        return writer.go()
+        writer = XHTMLWriter(document, target, cssClasses, pretty)
+        final = writer.go()
+        final.seek(0)
+
+        # Doesn't work all that well -- appends an <?xml ...> tag,
+        # and puts line breaks in unusual places for HTML.
+        #if pretty:
+        #    content = final.read()
+        #    final.seek(0)
+        #    from xml.dom.ext import PrettyPrint
+        #    from xml.dom.ext.reader.Sax import FromXml
+        #    PrettyPrint(FromXml(content), final)
+        #    final.seek(0)
+
+        return final
 
 
-    def __init__(self, doc, target, cssClasses=True):
+    def __init__(self, doc, target, cssClasses=True, pretty=False):
         self.document = doc
         self.target = target
         self.cssClasses = cssClasses
+        self.pretty = pretty
         self.paragraphDispatch = {
             document.List: self._list,
             document.Paragraph: self._paragraph
@@ -46,7 +60,7 @@ class XHTMLWriter(PythWriter):
         
         for element in self.document.content:
             handler = self.paragraphDispatch[element.__class__]
-            tag.content.append(handler(element))
+            tag.content.extend(handler(element))
 
         tag.render(self.target)
         return self.target
@@ -56,7 +70,11 @@ class XHTMLWriter(PythWriter):
         p = Tag("p")
         for text in paragraph.content:
             p.content.append(self._text(text))
-        return p
+
+        if self.pretty:
+            return [_prettyBreak, p, _prettyBreak]
+        else:
+            return [p]
 
 
     def _list(self, lst):
@@ -71,12 +89,12 @@ class XHTMLWriter(PythWriter):
             li = Tag("li")
             for element in entry.content:
                 handler = self.paragraphDispatch[element.__class__]
-                li.content.append(handler(element))
+                li.content.extend(handler(element))
             ul.content.append(li)
 
         self.listLevel -= 1
             
-        return ul
+        return [ul]
 
 
     def _text(self, text):
@@ -108,6 +126,9 @@ class XHTMLWriter(PythWriter):
 
 
 
+_prettyBreak = object()
+
+
 class Tag(object):
     
     def __init__(self, tag, attrs=None, content=None):
@@ -127,6 +148,8 @@ class Tag(object):
         for c in self.content:
             if isinstance(c, Tag):
                 c.render(target)
+            elif c is _prettyBreak:
+                target.write('\n')
             else:
                 target.write(quoteText(c).encode("utf-8").replace('\n', '<br />'))
 

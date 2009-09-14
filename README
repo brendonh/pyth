@@ -1,0 +1,17 @@
+====
+pyth
+====
+
+
+unit tests
+==========
+
+The sources contains some unit tests (written using python unittest
+module) in the 'tests' directory.
+
+To run the tests we can either run them individually as python script,
+either use `python nose`_.  If using nose then we just need to go into
+the tests directory and invoke nosetest from there (make sure that
+pyth module is in PYTHONPATH).
+
+.. _python nose: http://code.google.com/p/python-nose/

@@ -33,6 +33,8 @@ class _Shortcut(object):
 BOLD = _Shortcut("bold")
 ITALIC = _Shortcut("italic")
 UNDERLINE = _Shortcut("underline")
+SUPER = _Shortcut("super")
+SUB = _Shortcut("sub")
 
 
 def _MetaPythonBase():

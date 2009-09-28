@@ -53,6 +53,10 @@ _CODEPAGES = {
 }
 
 
+class BackslashEscape(Exception):
+    pass
+
+
 class Rtf15Reader(PythReader):
 
     @classmethod
@@ -112,11 +116,18 @@ class Rtf15Reader(PythReader):
         chars = []
         digits = []
         current = chars
+        first = True
         while True:
             next = self.source.read(1)
 
             if not next:
                 break
+
+            if first and next in '\\':
+                chars.extend("control_symbol")
+                digits.append(next)
+                break
+            first = False
 
             if next == "'":
                 # ANSI escape, takes two hex digits
@@ -156,10 +167,35 @@ class Rtf15Reader(PythReader):
             if block[0] is None:
                 block[0] = document.Paragraph()
 
-            if run:
-                block[0].content.append(document.Text(propStack[-1].copy(), [u"".join(run)]))
+            block[0].content.append(document.Text(propStack[-1].copy(), [u"".join(run)]))
 
             run[:] = []
+
+
+        def cleanParagraph():
+            runs = block[0].content
+
+            if not runs:
+                block[0] = None
+                return
+
+            joinedRuns = [runs[0]]
+            hasContent = bool(runs[0].content[0].strip())
+
+            for run in runs[1:]:
+                if run.content[0].strip(): hasContent = True
+                if run.properties == joinedRuns[-1].properties:
+                    joinedRuns[-1].content[0] += run.content[0]
+                else:
+                    joinedRuns.append(run)
+
+            if hasContent:
+                joinedRuns[0].content[0] = joinedRuns[0].content[0].lstrip()
+                joinedRuns[-1].content[0] = joinedRuns[-1].content[0].rstrip()
+                block[0].content = joinedRuns
+            else:
+                block[0] = None
+
 
         for bit in self.group.flatten():
 
@@ -176,7 +212,9 @@ class Rtf15Reader(PythReader):
             elif isinstance(bit, Para):
                 flush()
                 if block[0].content:
-                    listStack[-1].append(block[0])
+                    cleanParagraph()
+                    if block[0] is not None:
+                        listStack[-1].append(block[0])
 
                 prevListLevel = listLevel
                 listLevel = bit.listLevel
@@ -198,7 +236,6 @@ class Rtf15Reader(PythReader):
             elif isinstance(bit, ReadableMarker):
                 flush()
                 if bit.val:
-
                     # RTF needs underline markers for hyperlinks,
                     # but nothing else does. If we're in a hyperlink,
                     # ignore underlines.
@@ -258,7 +295,7 @@ class Group(object):
 
 
     def _finalize(self):
-
+        
         if self.destination:
             self.skip = True
 
@@ -323,6 +360,12 @@ class Group(object):
 
     def handle_ansi_escape(self, code):
         self.content.append(chr(int(code, 16)).decode(self.charset))
+
+
+    def handle_control_symbol(self, symbol):
+        # Ignore ~, -, and _, since they are optional crap.
+        if symbol in '\\{}':
+            self.content.append(unicode(symbol))
 
 
     def handle_u(self, codepoint):
@@ -403,9 +446,6 @@ class Group(object):
         self.content.append(u'\u201D')
 
 
-
-
-
     def handle_field(self):
         def finalize():
             if len(self.content) != 2:
@@ -424,9 +464,9 @@ class Group(object):
 
             match = re.match(ur'HYPERLINK "(.*)"', destination)
             if match:
+                content.skip = False
                 self.content = [ReadableMarker("url", match.group(1)),
                                 content]
-                self._finalize()
             else:
                 return u""
 

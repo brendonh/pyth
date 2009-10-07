@@ -359,7 +359,10 @@ class Group(object):
 
 
     def handle_ansi_escape(self, code):
-        self.content.append(chr(int(code, 16)).decode(self.charset))
+        try:
+            self.content.append(chr(int(code, 16)).decode(self.charset))
+        except UnicodeDecodeError:
+            self.content.append('?')
 
 
     def handle_control_symbol(self, symbol):

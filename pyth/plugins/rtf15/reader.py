@@ -340,7 +340,7 @@ class Group(object):
 
     def handle_fonttbl(self):
         self.specialMeaning = 'FONT_TABLE'
-        self.charsetTable = {}
+        self.charsetTable = {0: "cp1252"} # Hmm.
 
 
     def handle_f(self, fontNum):

@@ -123,10 +123,16 @@ class Rtf15Reader(PythReader):
             if not next:
                 break
 
-            if first and next in '\\':
+            if first and next == '\\':
                 chars.extend("control_symbol")
                 digits.append(next)
                 break
+
+            if first and next in '\r\n':
+                # Special-cased in RTF, equivalent to a \par
+                chars.extend("par")
+                break
+
             first = False
 
             if next == "'":
@@ -186,7 +192,7 @@ class Rtf15Reader(PythReader):
             joinedRuns = []
             hasContent = False
 
-            for run in runs[1:]:
+            for run in runs:
 
                 if run.content[0].strip(): 
                     hasContent = True
@@ -259,6 +265,13 @@ class Rtf15Reader(PythReader):
                 else:
                     if bit.name in propStack[-1]:
                         del propStack[-1][bit.name]
+
+        if block[0] is not None:
+            flush()
+            if block[0].content:
+                cleanParagraph()
+                if block[0] is not None:
+                    listStack[-1].append(block[0])
 
         return doc
 

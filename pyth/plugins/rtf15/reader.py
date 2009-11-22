@@ -21,15 +21,15 @@ _CODEPAGES = {
 
     # Does Python have built-in support for these? What is it?
     # 2: "42",     # Symbol
-    # 77: "10000", # Mac Roman
+    77: "mac-roman", # Mac Roman
     # 78: "10001", # Mac Shift Jis
     # 79: "10003", # Mac Hangul
     # 80: "10008", # Mac GB2312
     # 81: "10002", # Mac Big5
     # 83: "10005", # Mac Hebrew
-    # 84: "10004", # Mac Arabic
-    # 85: "10006", # Mac Greek
-    # 86: "10081", # Mac Turkish
+    84: "mac-arabic", # Mac Arabic
+    85: "mac-greek", # Mac Greek
+    86: "mac-turkish", # Mac Turkish
     # 87: "10021", # Mac Thai
     # 88: "10029", # Mac East Europe
     # 89: "10007", # Mac Russian

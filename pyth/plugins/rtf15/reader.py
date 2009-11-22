@@ -154,7 +154,7 @@ class Rtf15Reader(PythReader):
 
     def build(self):
         doc = document.Document()
-
+       
         run = []
         propStack = [{}]
         block = [None]
@@ -173,24 +173,36 @@ class Rtf15Reader(PythReader):
 
 
         def cleanParagraph():
+            """
+            Compress text runs, remove whitespace at start and end, skip empty blocks, etc
+            """
+
             runs = block[0].content
 
             if not runs:
                 block[0] = None
                 return
 
-            joinedRuns = [runs[0]]
-            hasContent = bool(runs[0].content[0].strip())
+            joinedRuns = []
+            hasContent = False
 
             for run in runs[1:]:
-                if run.content[0].strip(): hasContent = True
-                if run.properties == joinedRuns[-1].properties:
+
+                if run.content[0].strip(): 
+                    hasContent = True
+                else: 
+                    continue
+
+                # Join runs only if their properties match
+                if joinedRuns and (run.properties == joinedRuns[-1].properties):
                     joinedRuns[-1].content[0] += run.content[0]
                 else:
                     joinedRuns.append(run)
 
             if hasContent:
+                # Strip beginning of paragraph
                 joinedRuns[0].content[0] = joinedRuns[0].content[0].lstrip()
+                # And then strip the end
                 joinedRuns[-1].content[0] = joinedRuns[-1].content[0].rstrip()
                 block[0].content = joinedRuns
             else:
@@ -210,6 +222,7 @@ class Rtf15Reader(PythReader):
                 propStack.pop()
 
             elif isinstance(bit, Para):
+
                 flush()
                 if block[0].content:
                     cleanParagraph()
@@ -246,7 +259,6 @@ class Rtf15Reader(PythReader):
                 else:
                     if bit.name in propStack[-1]:
                         del propStack[-1][bit.name]
-
 
         return doc
 
@@ -340,22 +352,29 @@ class Group(object):
 
     def handle_fonttbl(self):
         self.specialMeaning = 'FONT_TABLE'
-        self.charsetTable = {0: "cp1252"} # Hmm.
+        self.charsetTable = {}
 
 
     def handle_f(self, fontNum):
-        if self.parent.specialMeaning == 'FONT_TABLE':
+        if 'FONT_TABLE' in (self.parent.specialMeaning, self.specialMeaning):
             self.fontNum = int(fontNum)
         elif self.charsetTable is not None:
             self.charset = self.charsetTable[int(fontNum)]
 
             
     def handle_fcharset(self, charsetNum):
-        if self.parent.specialMeaning == 'FONT_TABLE':
+        if 'FONT_TABLE' in (self.parent.specialMeaning, self.specialMeaning):
             # Theoretically, \fN should always be before \fcharsetN
             # I don't really expect that will always be true, but let's crash
             # if it's not, and see if it happens in the real world.
-            self.parent.charsetTable[self.fontNum] = _CODEPAGES.get(int(charsetNum))
+            charset = _CODEPAGES.get(int(charsetNum))
+
+            # XXX Todo: Figure out a more graceful way to handle the fact that
+            # RTF font declarations can be in their own groups or not
+            if self.parent.charsetTable is not None:
+                self.parent.charsetTable[self.fontNum] = charset
+            else: 
+                self.charsetTable[self.fontNum] = charset
 
 
     def handle_ansi_escape(self, code):

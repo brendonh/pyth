@@ -73,6 +73,9 @@ class Text(_PythBase):
     validProperties = ('bold', 'italic', 'underline', 'url', 'sub', 'super')
     contentType = unicode
 
+    def __repr__(self):
+        return "Text('%s' %s)" % ("".join("[%s]" % r.encode("utf-8") for r in self.content), self.properties)
+
 
 
 class Paragraph(_PythBase):

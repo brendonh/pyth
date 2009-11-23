@@ -1,14 +1,11 @@
-#!/usr/bin/env python
-
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name="pyth",
-      version="0.1.0",
-      description="Convert between different document formats",
+      version="0.5",
+      packages = find_packages(),
+
+      description="Python text markup conversion",
       author="Brendon Hogger",
       author_email="brendonh@taizilla.com",
       url="http://wiki.github.com/brendonh/pyth",
-      packages = ["pyth", "pyth.plugins", "pyth.plugins.latex",
-                  "pyth.plugins.pdf", "pyth.plugins.plaintext",
-                  "pyth.plugins.python", "pyth.plugins.rst",
-                  "pyth.plugins.rtf15", "pyth.plugins.xhtml"])
+)

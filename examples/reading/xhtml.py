@@ -49,4 +49,4 @@ if __name__ == '__main__':
     # Parse the document and then reconstruct it using the xhtml
     # writer.
     doc = XHTMLReader.read(content, css)
-    print xhtml.docTemplate % XHTMLWriter.write(doc).getvalue()
+    print XHTMLWriter.write(doc).getvalue()

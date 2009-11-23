@@ -17,4 +17,4 @@ docTemplate = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http:
 
 if __name__ == "__main__":
     doc = pythonDoc.buildDoc()
-    print docTemplate % XHTMLWriter.write(doc).getvalue()
+    print docTemplate % XHTMLWriter.write(doc, pretty=True).getvalue()

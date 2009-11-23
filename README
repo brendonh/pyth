@@ -1,9 +1,48 @@
-====
-pyth
-====
+========================================
+pyth - Python text markup and conversion
+========================================
+
+Pyth is intended to make it easy to convert marked-up text between different common formats.
+
+*Marked-up text* means text which has:
+
+* Paragraphs
+* Headings
+* Bold, italic, and underlined text
+* Hyperlinks
+* Bullet lists
+* Simple tables
+* Very little else
 
 
-unit tests
+Formats I initially want to support are:
+
+* xhtml
+* rtf
+* pdf (output)
+
+
+These three formats cover web, Word / OpenOffice, and print. 
+
+
+Design principles
+=================
+
+* Ignore unsupported information in input formats (e.g. page layout)
+* Ignore font issues -- output in a single font.
+* Ignore specific text sizes -- support relative sizes (bigger, littler) only. Output in a single base size.
+* Have no dependencies unless they are written in Python, and work
+* Make it easy to add support for new formats, by using an architecture based on *plugins* and *adapters*.
+
+
+
+Examples
+========
+
+See `http://github.com/brendonh/pyth/tree/master/examples/`
+
+
+Unit tests
 ==========
 
 The sources contains some unit tests (written using python unittest

@@ -1,8 +1,8 @@
 from pyth.plugins.rtf15.reader import Rtf15Reader
-from pyth.plugins.xhtml.writer import XHTMLWriter
+from pyth.plugins.plaintext.writer import PlaintextWriter
 
 doc = Rtf15Reader.read(open('sample.rtf'))
 
-print XHTMLWriter.write(doc, pretty=True).getvalue()
+print PlaintextWriter.write(doc).read()
 
 

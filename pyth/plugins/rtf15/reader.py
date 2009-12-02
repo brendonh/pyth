@@ -161,62 +161,7 @@ class Rtf15Reader(PythReader):
     def build(self):
         doc = document.Document()
        
-        #run = []
-        #propStack = [{}]
-        #block = [None]
-
-        #prevListLevel = None
-        #listLevel = None
-        #listStack = [doc]
-
         ctx = BuildContext(doc)
-
-        def flush():
-            if ctx.block is None:
-                ctx.block = document.Paragraph()
-
-            ctx.block.content.append(
-                document.Text(ctx.propStack[-1].copy(), 
-                              [u"".join(ctx.run)]))
-
-            ctx.run[:] = []
-
-
-        def cleanParagraph():
-            """
-            Compress text runs, remove whitespace at start and end, skip empty blocks, etc
-            """
-
-            runs = ctx.block.content
-
-            if not runs:
-                ctx.block = None
-                return
-
-            joinedRuns = []
-            hasContent = False
-
-            for run in runs:
-
-                if run.content[0].strip(): 
-                    hasContent = True
-                else: 
-                    continue
-
-                # Join runs only if their properties match
-                if joinedRuns and (run.properties == joinedRuns[-1].properties):
-                    joinedRuns[-1].content[0] += run.content[0]
-                else:
-                    joinedRuns.append(run)
-
-            if hasContent:
-                # Strip beginning of paragraph
-                joinedRuns[0].content[0] = joinedRuns[0].content[0].lstrip()
-                # And then strip the end
-                joinedRuns[-1].content[0] = joinedRuns[-1].content[0].rstrip()
-                ctx.block.content = joinedRuns
-            else:
-                ctx.block = None
 
 
         for bit in self.group.flatten():
@@ -228,14 +173,14 @@ class Rtf15Reader(PythReader):
                 ctx.propStack.append(ctx.propStack[-1].copy())
 
             elif bit is Pop:
-                flush()
+                ctx.flush()
                 ctx.propStack.pop()
 
             elif isinstance(bit, Para):
 
-                flush()
+                ctx.flush()
                 if ctx.block.content:
-                    cleanParagraph()
+                    ctx.cleanParagraph()
                     if ctx.block is not None:
                         ctx.listStack[-1].append(ctx.block)
 
@@ -253,11 +198,11 @@ class Rtf15Reader(PythReader):
                 ctx.block = None
 
             elif bit is Reset:
-                flush()
+                ctx.flush()
                 ctx.propStack[-1].clear()
 
             elif isinstance(bit, ReadableMarker):
-                flush()
+                ctx.flush()
                 if bit.val:
                     # RTF needs underline markers for hyperlinks,
                     # but nothing else does. If we're in a hyperlink,
@@ -271,9 +216,9 @@ class Rtf15Reader(PythReader):
                         del propStack[-1][bit.name]
 
         if ctx.block is not None:
-            flush()
+            ctx.flush()
             if ctx.block.content:
-                cleanParagraph()
+                ctx.cleanParagraph()
                 if ctx.block is not None:
                     ctx.listStack[-1].append(ctx.block)
 
@@ -282,6 +227,7 @@ class Rtf15Reader(PythReader):
 
 
 class BuildContext(object):
+
     def __init__(self, doc):
         self.run = []
         self.propStack = [{}]
@@ -289,6 +235,56 @@ class BuildContext(object):
 
         self.listLevel = None
         self.listStack = [doc]
+
+
+    def flush(self):
+        if self.block is None:
+            self.block = document.Paragraph()
+
+        self.block.content.append(
+            document.Text(self.propStack[-1].copy(), 
+                          [u"".join(self.run)]))
+
+        self.run[:] = []
+
+
+
+    def cleanParagraph(self):
+        """
+        Compress text runs, remove whitespace at start and end, 
+        skip empty blocks, etc
+        """
+
+        runs = self.block.content
+
+        if not runs:
+            self.block = None
+            return
+
+        joinedRuns = []
+        hasContent = False
+
+        for run in runs:
+
+            if run.content[0].strip(): 
+                hasContent = True
+            else: 
+                continue
+
+            # Join runs only if their properties match
+            if joinedRuns and (run.properties == joinedRuns[-1].properties):
+                joinedRuns[-1].content[0] += run.content[0]
+            else:
+                joinedRuns.append(run)
+
+        if hasContent:
+            # Strip beginning of paragraph
+            joinedRuns[0].content[0] = joinedRuns[0].content[0].lstrip()
+            # And then strip the end
+            joinedRuns[-1].content[0] = joinedRuns[-1].content[0].rstrip()
+            self.block.content = joinedRuns
+        else:
+            self.block = None
 
 
 

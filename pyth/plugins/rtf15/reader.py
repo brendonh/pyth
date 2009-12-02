@@ -161,21 +161,25 @@ class Rtf15Reader(PythReader):
     def build(self):
         doc = document.Document()
        
-        run = []
-        propStack = [{}]
-        block = [None]
+        #run = []
+        #propStack = [{}]
+        #block = [None]
 
-        prevListLevel = None
-        listLevel = None
-        listStack = [doc]
+        #prevListLevel = None
+        #listLevel = None
+        #listStack = [doc]
+
+        ctx = BuildContext(doc)
 
         def flush():
-            if block[0] is None:
-                block[0] = document.Paragraph()
+            if ctx.block is None:
+                ctx.block = document.Paragraph()
 
-            block[0].content.append(document.Text(propStack[-1].copy(), [u"".join(run)]))
+            ctx.block.content.append(
+                document.Text(ctx.propStack[-1].copy(), 
+                              [u"".join(ctx.run)]))
 
-            run[:] = []
+            ctx.run[:] = []
 
 
         def cleanParagraph():
@@ -183,10 +187,10 @@ class Rtf15Reader(PythReader):
             Compress text runs, remove whitespace at start and end, skip empty blocks, etc
             """
 
-            runs = block[0].content
+            runs = ctx.block.content
 
             if not runs:
-                block[0] = None
+                ctx.block = None
                 return
 
             joinedRuns = []
@@ -210,47 +214,47 @@ class Rtf15Reader(PythReader):
                 joinedRuns[0].content[0] = joinedRuns[0].content[0].lstrip()
                 # And then strip the end
                 joinedRuns[-1].content[0] = joinedRuns[-1].content[0].rstrip()
-                block[0].content = joinedRuns
+                ctx.block.content = joinedRuns
             else:
-                block[0] = None
+                ctx.block = None
 
 
         for bit in self.group.flatten():
 
             if isinstance(bit, unicode):
-                run.append(bit)
+                ctx.run.append(bit)
 
             elif bit is Push:
-                propStack.append(propStack[-1].copy())
+                ctx.propStack.append(ctx.propStack[-1].copy())
 
             elif bit is Pop:
                 flush()
-                propStack.pop()
+                ctx.propStack.pop()
 
             elif isinstance(bit, Para):
 
                 flush()
-                if block[0].content:
+                if ctx.block.content:
                     cleanParagraph()
-                    if block[0] is not None:
-                        listStack[-1].append(block[0])
+                    if ctx.block is not None:
+                        ctx.listStack[-1].append(ctx.block)
 
-                prevListLevel = listLevel
-                listLevel = bit.listLevel
+                prevListLevel = ctx.listLevel
+                ctx.listLevel = bit.listLevel
 
-                if listLevel > prevListLevel:
+                if ctx.listLevel > prevListLevel:
                     l = document.List()
-                    listStack.append(l)
+                    ctx.listStack.append(l)
 
-                elif listLevel < prevListLevel:
-                    l = listStack.pop()
-                    listStack[-1].append(l)
+                elif ctx.listLevel < prevListLevel:
+                    l = ctx.listStack.pop()
+                    ctx.listStack[-1].append(l)
 
-                block[0] = None
+                ctx.block = None
 
             elif bit is Reset:
                 flush()
-                propStack[-1].clear()
+                ctx.propStack[-1].clear()
 
             elif isinstance(bit, ReadableMarker):
                 flush()
@@ -258,22 +262,35 @@ class Rtf15Reader(PythReader):
                     # RTF needs underline markers for hyperlinks,
                     # but nothing else does. If we're in a hyperlink,
                     # ignore underlines.
-                    if 'url' in propStack[-1] and bit.name == 'underline':
+                    if 'url' in ctx.propStack[-1] and bit.name == 'underline':
                         continue
 
-                    propStack[-1][bit.name] = bit.val
+                    ctx.propStack[-1][bit.name] = bit.val
                 else:
-                    if bit.name in propStack[-1]:
+                    if bit.name in ctx.propStack[-1]:
                         del propStack[-1][bit.name]
 
-        if block[0] is not None:
+        if ctx.block is not None:
             flush()
-            if block[0].content:
+            if ctx.block.content:
                 cleanParagraph()
-                if block[0] is not None:
-                    listStack[-1].append(block[0])
+                if ctx.block is not None:
+                    ctx.listStack[-1].append(ctx.block)
 
         return doc
+
+
+
+class BuildContext(object):
+    def __init__(self, doc):
+        self.run = []
+        self.propStack = [{}]
+        self.block = None
+
+        self.listLevel = None
+        self.listStack = [doc]
+
+
 
 
 class Group(object):

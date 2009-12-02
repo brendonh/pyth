@@ -161,55 +161,11 @@ class Rtf15Reader(PythReader):
     def build(self):
         doc = document.Document()
        
-        ctx = BuildContext(doc)
-
+        ctx = DocBuilder(doc)
 
         for bit in self.group.flatten():
-
-            if isinstance(bit, unicode):
-                ctx.run.append(bit)
-
-            elif bit is Push:
-                ctx.propStack.append(ctx.propStack[-1].copy())
-
-            elif bit is Pop:
-                ctx.flushRun()
-                ctx.propStack.pop()
-
-            elif isinstance(bit, Para):
-
-                ctx.flushParagraph()
-
-                prevListLevel = ctx.listLevel
-                ctx.listLevel = bit.listLevel
-
-                if ctx.listLevel > prevListLevel:
-                    l = document.List()
-                    ctx.listStack.append(l)
-
-                elif ctx.listLevel < prevListLevel:
-                    l = ctx.listStack.pop()
-                    ctx.listStack[-1].append(l)
-
-                ctx.block = None
-
-            elif bit is Reset:
-                ctx.flushRun()
-                ctx.propStack[-1].clear()
-
-            elif isinstance(bit, ReadableMarker):
-                ctx.flushRun()
-                if bit.val:
-                    # RTF needs underline markers for hyperlinks,
-                    # but nothing else does. If we're in a hyperlink,
-                    # ignore underlines.
-                    if 'url' in ctx.propStack[-1] and bit.name == 'underline':
-                        continue
-
-                    ctx.propStack[-1][bit.name] = bit.val
-                else:
-                    if bit.name in ctx.propStack[-1]:
-                        del propStack[-1][bit.name]
+            typeName = type(bit).__name__
+            getattr(ctx, "handle_%s" % typeName)(bit)
 
         ctx.flushParagraph()
 
@@ -217,7 +173,7 @@ class Rtf15Reader(PythReader):
 
 
 
-class BuildContext(object):
+class DocBuilder(object):
 
     def __init__(self, doc):
         self.run = []
@@ -284,6 +240,56 @@ class BuildContext(object):
             if self.block is not None:
                 self.listStack[-1].append(self.block)
 
+
+    def handle_unicode(self, bit):
+        self.run.append(bit)
+
+
+    def handle_Push(self, _):
+        self.propStack.append(self.propStack[-1].copy())
+
+
+    def handle_Pop(self, _):
+        self.flushRun()
+        self.propStack.pop()
+
+
+    def handle_Para(self, para):
+        
+        self.flushParagraph()
+
+        prevListLevel = self.listLevel
+        self.listLevel = para.listLevel
+
+        if self.listLevel > prevListLevel:
+            l = document.List()
+            self.listStack.append(l)
+
+        elif self.listLevel < prevListLevel:
+            l = self.listStack.pop()
+            self.listStack[-1].append(l)
+
+        self.block = None
+
+
+    def handle_Reset(self, _):
+        self.flushRun()
+        self.propStack[-1].clear()
+
+    
+    def handle_ReadableMarker(self, marker):
+        self.flushRun()
+        if marker.val:
+            # RTF needs underline markers for hyperlinks,
+            # but nothing else does. If we're in a hyperlink,
+            # ignore underlines.
+            if 'url' in self.propStack[-1] and marker.name == 'underline':
+                return
+
+            self.propStack[-1][marker.name] = marker.val
+        else:
+            if marker.name in self.propStack[-1]:
+                del self.propStack[-1][marker.name]
 
 
 

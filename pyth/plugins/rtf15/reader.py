@@ -173,16 +173,12 @@ class Rtf15Reader(PythReader):
                 ctx.propStack.append(ctx.propStack[-1].copy())
 
             elif bit is Pop:
-                ctx.flush()
+                ctx.flushRun()
                 ctx.propStack.pop()
 
             elif isinstance(bit, Para):
 
-                ctx.flush()
-                if ctx.block.content:
-                    ctx.cleanParagraph()
-                    if ctx.block is not None:
-                        ctx.listStack[-1].append(ctx.block)
+                ctx.flushParagraph()
 
                 prevListLevel = ctx.listLevel
                 ctx.listLevel = bit.listLevel
@@ -198,11 +194,11 @@ class Rtf15Reader(PythReader):
                 ctx.block = None
 
             elif bit is Reset:
-                ctx.flush()
+                ctx.flushRun()
                 ctx.propStack[-1].clear()
 
             elif isinstance(bit, ReadableMarker):
-                ctx.flush()
+                ctx.flushRun()
                 if bit.val:
                     # RTF needs underline markers for hyperlinks,
                     # but nothing else does. If we're in a hyperlink,
@@ -215,12 +211,7 @@ class Rtf15Reader(PythReader):
                     if bit.name in ctx.propStack[-1]:
                         del propStack[-1][bit.name]
 
-        if ctx.block is not None:
-            ctx.flush()
-            if ctx.block.content:
-                ctx.cleanParagraph()
-                if ctx.block is not None:
-                    ctx.listStack[-1].append(ctx.block)
+        ctx.flushParagraph()
 
         return doc
 
@@ -237,7 +228,7 @@ class BuildContext(object):
         self.listStack = [doc]
 
 
-    def flush(self):
+    def flushRun(self):
         if self.block is None:
             self.block = document.Paragraph()
 
@@ -246,7 +237,6 @@ class BuildContext(object):
                           [u"".join(self.run)]))
 
         self.run[:] = []
-
 
 
     def cleanParagraph(self):
@@ -285,6 +275,14 @@ class BuildContext(object):
             self.block.content = joinedRuns
         else:
             self.block = None
+
+
+    def flushParagraph(self):
+        self.flushRun()
+        if self.block.content:
+            self.cleanParagraph()
+            if self.block is not None:
+                self.listStack[-1].append(self.block)
 
 
 

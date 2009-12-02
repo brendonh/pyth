@@ -3,6 +3,6 @@ from pyth.plugins.xhtml.writer import XHTMLWriter
 
 doc = Rtf15Reader.read(open('sample.rtf'))
 
-print XHTMLWriter.write(doc).read()
+print XHTMLWriter.write(doc, pretty=True).read()
 
 

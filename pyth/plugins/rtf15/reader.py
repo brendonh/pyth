@@ -98,13 +98,13 @@ class Rtf15Reader(PythReader):
                 self.group = subGroup
             elif next == '}':
                 subGroup = self.stack.pop()
-                subGroup.finalize()
+                self.group = self.stack[-1]
 
+                subGroup.finalize()
                 if subGroup.specialMeaning == 'FONT_TABLE':
                     self.charsetTable = subGroup.charsetTable
-
-                self.group = self.stack[-1]
                 self.group.content.append(subGroup)
+
             elif next == '\\':
                 control, digits = self.getControl()
                 self.group.handle(control, digits)
@@ -567,8 +567,9 @@ class Skip(object):
 
 
 class ReadableMarker(object):
-    def __init__(self, name, val=None):
-        self.name = name
+    def __init__(self, name=None, val=None):
+        if name is not None:
+            self.name = name
         self.val = val
 
     def __repr__(self):
@@ -588,7 +589,15 @@ class Para(ReadableMarker):
         return "!Para:%s!" % self.listLevel
 
 
-Reset = ReadableMarker("Reset")
+class Reset(ReadableMarker):
+    name = "Reset"
 
-Push = ReadableMarker("Push")
-Pop = ReadableMarker("Pop")
+class Push(ReadableMarker):
+    name = "Push"
+
+class Pop(ReadableMarker):
+    name = "Pop"
+
+Reset = Reset()
+Push = Push()
+Pop = Pop()

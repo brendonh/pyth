@@ -38,7 +38,8 @@ class PlaintextWriter(PythWriter):
         # Heh heh, remove final paragraph spacing
         self.target.seek(-2, 1)
         self.target.truncate()
-        
+
+        self.target.seek(0)
         return self.target
 
 

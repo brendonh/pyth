@@ -212,7 +212,7 @@ class DocBuilder(object):
 
         for run in runs:
 
-            if run.content[0].strip(): 
+            if run.content[0]: 
                 hasContent = True
             else: 
                 continue

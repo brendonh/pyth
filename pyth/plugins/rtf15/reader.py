@@ -248,6 +248,11 @@ class DocBuilder(object):
             else: 
                 continue
 
+            # For whitespace-only groups, remove any property stuff,
+            # to avoid extra markup in output
+            if not run.content[0].strip():
+                run.properties = {}
+
             # Join runs only if their properties match
             if joinedRuns and (run.properties == joinedRuns[-1].properties):
                 joinedRuns[-1].content[0] += run.content[0]

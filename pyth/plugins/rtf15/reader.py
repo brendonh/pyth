@@ -602,6 +602,9 @@ class Group(object):
     handle_pgdsctbl = ignore
     handle_listtext = ignore
 
+    # Revision hacks
+    handle_revauthdel = ignore
+
 
 
 

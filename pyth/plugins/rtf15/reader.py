@@ -146,6 +146,7 @@ class Rtf15Reader(PythReader):
 
                 if subGroup.specialMeaning == 'FONT_TABLE':
                     self.charsetTable = subGroup.charsetTable
+                    print self.charsetTable
                 self.group.content.append(subGroup)
 
             elif next == '\\':
@@ -462,6 +463,9 @@ class Group(object):
             # if it's not, and see if it happens in the real world.
             charset = _CODEPAGES.get(int(charsetNum))
 
+            if charset is None:
+                raise ValueError("Unsupported charset %s" % charsetNum)
+
             # XXX Todo: Figure out a more graceful way to handle the fact that
             # RTF font declarations can be in their own groups or not
             if self.parent.charsetTable is not None:
@@ -480,12 +484,10 @@ class Group(object):
             else:
                 char = unichr(uni_code)
             
-
         else:
             try:
                 char = chr(code).decode(self.charset)
             except UnicodeDecodeError:
-                print code, self.charset
                 char = u'?'
 
         self.content.append(char)

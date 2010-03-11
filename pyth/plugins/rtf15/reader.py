@@ -73,8 +73,18 @@ _CODEPAGES = {
     255: "cp850",  # OEM
 }
 
+# All the ones named by number in my 2.6 encodings dir
+_CODEPAGES_BY_NUMBER = dict(
+    (x, "cp%s" % x) for x in (37, 1006, 1026, 1140, 1250, 1251, 1252, 1253, 1254, 1255,
+                              1256, 1257, 1258, 424, 437, 500, 737, 775, 850, 852, 855,
+                              856, 857, 860, 861, 862, 863, 864, 865, 866, 869, 874,
+                              875, 932, 949, 950))
 
-
+# Miscellaneous, incomplete
+_CODEPAGES_BY_NUMBER.update({
+   10000: "mac-roman",
+   10007: "mac-greek",
+})
 
 
 class BackslashEscape(Exception):
@@ -107,8 +117,9 @@ class Rtf15Reader(PythReader):
 
         self.source.seek(0)
 
-        self.group = Group()
         self.charsetTable = None
+        self.charset = 'cp1252'
+        self.group = Group(self)
         self.stack = [self.group]
         self.parse()
         return self.build()
@@ -124,7 +135,7 @@ class Rtf15Reader(PythReader):
             if next in '\r\n':
                 continue
             if next == '{':
-                subGroup = Group(self.group, self.charsetTable)
+                subGroup = Group(self, self.group, self.charsetTable)
                 self.stack.append(subGroup)
                 self.group = subGroup
             elif next == '}':
@@ -132,6 +143,7 @@ class Rtf15Reader(PythReader):
                 self.group = self.stack[-1]
 
                 subGroup.finalize()
+
                 if subGroup.specialMeaning == 'FONT_TABLE':
                     self.charsetTable = subGroup.charsetTable
                 self.group.content.append(subGroup)
@@ -331,7 +343,8 @@ class DocBuilder(object):
 
 class Group(object):
 
-    def __init__(self, parent=None, charsetTable=None):
+    def __init__(self, reader, parent=None, charsetTable=None):
+        self.reader = reader
         self.parent = parent
 
         if parent:
@@ -339,7 +352,7 @@ class Group(object):
             self.charset = self.parent.charset
         else:
             self.props = {}
-            self.charset = 'cp1252' # ?
+            self.charset = self.reader.charset
 
         self.specialMeaning = None
         self.skip = False
@@ -416,6 +429,20 @@ class Group(object):
         return stuff
 
 
+    # Header stuff
+    def handle_ansi(self): self.charset = self.reader.charset = 'cp1252'
+    def handle_mac(self): self.charset = self.reader.charset = 'mac-roman'
+    def handle_pc(self): self.charset = self.reader.charset = 'cp437'
+    def handle_pca(self): self.charset = self.reader.charset = 'cp850'
+
+    def handle_ansicpg(self, codepage):
+        codepage = int(codepage)
+        if codepage in _CODEPAGES_BY_NUMBER:
+            self.charset = self.reader.charset = _CODEPAGES_BY_NUMBER[codepage]
+        else:
+            raise ValueError("Unknown codepage %s" % codepage)
+
+
     def handle_fonttbl(self):
         self.specialMeaning = 'FONT_TABLE'
         self.charsetTable = {}
@@ -449,7 +476,7 @@ class Group(object):
         if isinstance(self.charset, dict):
             uni_code = self.charset.get(code)
             if uni_code is None:
-                char = '?'
+                char = u'?'
             else:
                 char = unichr(uni_code)
             
@@ -458,7 +485,8 @@ class Group(object):
             try:
                 char = chr(code).decode(self.charset)
             except UnicodeDecodeError:
-                char = '?'
+                print code, self.charset
+                char = u'?'
 
         self.content.append(char)
 

@@ -146,7 +146,6 @@ class Rtf15Reader(PythReader):
 
                 if subGroup.specialMeaning == 'FONT_TABLE':
                     self.charsetTable = subGroup.charsetTable
-                    print self.charsetTable
                 self.group.content.append(subGroup)
 
             elif next == '\\':

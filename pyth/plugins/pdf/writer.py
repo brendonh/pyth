@@ -8,7 +8,7 @@ import cgi # For escape()
 from pyth import document
 from pyth.format import PythWriter
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
@@ -28,8 +28,8 @@ BULLET_TEXT = "\xe2\x80\xa2"
 class PDFWriter(PythWriter):
 
     @classmethod
-    def write(klass, document, target=None, paragraphStyle=None, spacer=None):
-        writer = PDFWriter(document, paragraphStyle, spacer)
+    def write(klass, document, target=None, paragraphStyle=None):
+        writer = PDFWriter(document, paragraphStyle)
         story = writer.go()
         
         if target is None:
@@ -40,17 +40,14 @@ class PDFWriter(PythWriter):
         return target
 
 
-    def __init__(self, doc, paragraphStyle=None, spacer=None):
+    def __init__(self, doc, paragraphStyle=None):
         self.document = doc
 
         if paragraphStyle is None:
             stylesheet = getSampleStyleSheet()
             paragraphStyle = stylesheet['Normal']
         self.paragraphStyle = paragraphStyle
-
-        if spacer is None:
-            spacer = Spacer(0, DEFAULT_PARA_SPACE)
-        self.spacer = spacer
+        self.paragraphStyle.spaceAfter = 0.2 * inch
 
         self.paragraphDispatch = {
             document.List: self._list,
@@ -61,7 +58,6 @@ class PDFWriter(PythWriter):
         self.paragraphs = []
         for para in self.document.content:
             self._dispatch(para)
-            self.paragraphs.append(self.spacer)
         return self.paragraphs
             
 

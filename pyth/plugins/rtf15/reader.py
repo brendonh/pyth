@@ -6,7 +6,7 @@ http://www.biblioscape.com/rtf15_spec.htm
 This module is potentially compatible with RTF versions up to 1.9.1,
 but may not ignore all necessary control groups.
 """
-import string, re, itertools
+import string, re, itertools, struct
 
 from pyth import document
 from pyth.format import PythReader
@@ -504,7 +504,11 @@ class Group(object):
 
 
     def handle_u(self, codepoint):
-        self.content.append(unichr(int(codepoint)))
+        # This ridiculous trick gives a surrogate pair for
+        # non-BMP codepoints on narrow Pythons, which is
+        # probably better than crashing
+        char = struct.pack('<L', 0x10000).decode('utf-32')
+        self.content.append(char)
         self.content.append(Skip(self.props.get('unicode_skip', 1)))
 
 

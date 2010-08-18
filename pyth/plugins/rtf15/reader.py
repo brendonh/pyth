@@ -152,7 +152,7 @@ class Rtf15Reader(PythReader):
                 control, digits = self.getControl()
                 self.group.handle(control, digits)
             else:
-                self.group.char(unicode(next))
+                self.group.char(next)
 
 
     def getControl(self):
@@ -166,7 +166,7 @@ class Rtf15Reader(PythReader):
             if not next:
                 break
 
-            if first and next == '\\':
+            if first and next in '\\{}':
                 chars.extend("control_symbol")
                 digits.append(next)
                 break
@@ -382,7 +382,7 @@ class Group(object):
 
 
     def char(self, char):
-        self.content.append(char)
+        self.content.append(char.decode(self.charset))
 
 
     def _finalize(self):

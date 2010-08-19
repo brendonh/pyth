@@ -504,10 +504,15 @@ class Group(object):
 
 
     def handle_u(self, codepoint):
-        # This ridiculous trick gives a surrogate pair for
-        # non-BMP codepoints on narrow Pythons, which is
-        # probably better than crashing
-        char = struct.pack('<L', 0x10000).decode('utf-32')
+        codepoint = int(codepoint)
+        try: 
+            char = unichr(codepoint)
+        except ValueError:
+            # This ridiculous trick gives a surrogate pair for
+            # non-BMP codepoints on narrow Pythons, which is
+            # probably better than crashing
+            char = struct.pack('<L', codepoint).decode('utf-32')
+
         self.content.append(char)
         self.content.append(Skip(self.props.get('unicode_skip', 1)))
 

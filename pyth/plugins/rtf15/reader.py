@@ -465,7 +465,6 @@ class Group(object):
         elif self.charsetTable is not None:
             self.charset = self.charsetTable[int(fontNum)]
 
-
     def handle_fcharset(self, charsetNum):
         if 'FONT_TABLE' in (self.parent.specialMeaning, self.specialMeaning):
             # Theoretically, \fN should always be before \fcharsetN
@@ -475,7 +474,7 @@ class Group(object):
 
             if charset is None:
                 raise ValueError("Unsupported charset %s" % charsetNum)
-            self._setFontCharset()
+            self._setFontCharset(charset)
 
 
     def handle_ansi_escape(self, code):

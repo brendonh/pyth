@@ -11,5 +11,3 @@ else:
 doc = Rtf15Reader.read(open(filename, "rb"))
 
 print XHTMLWriter.write(doc, pretty=True).read()
-
-

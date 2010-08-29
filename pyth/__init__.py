@@ -4,7 +4,7 @@ Pyth -- Python text markup and conversion
 
 import os.path
 
-__version__ = '0.5.5'
+__version__ = '0.5.6'
 
 writerMap = {
     '.rtf': 'pyth.plugins.rtf15.writer.Rtf15Writer',

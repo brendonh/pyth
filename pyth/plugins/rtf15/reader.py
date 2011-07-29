@@ -77,18 +77,19 @@ class BackslashEscape(Exception):
 class Rtf15Reader(PythReader):
 
     @classmethod
-    def read(self, source, errors='strict'):
+    def read(self, source, errors='strict', clean_paragraphs=True):
         """
         source: A list of P objects.
         """
 
-        reader = Rtf15Reader(source, errors)
+        reader = Rtf15Reader(source, errors, clean_paragraphs)
         return reader.go()
 
 
-    def __init__(self, source, errors='strict'):
+    def __init__(self, source, errors='strict', clean_paragraphs=True):
         self.source = source
         self.errors = errors
+        self.clean_paragraphs = clean_paragraphs
         self.document = document.Document
 
 
@@ -193,7 +194,7 @@ class Rtf15Reader(PythReader):
     def build(self):
         doc = document.Document()
 
-        ctx = DocBuilder(doc)
+        ctx = DocBuilder(doc, self.clean_paragraphs)
 
         for bit in self.group.flatten():
             typeName = type(bit).__name__
@@ -207,13 +208,15 @@ class Rtf15Reader(PythReader):
 
 class DocBuilder(object):
 
-    def __init__(self, doc):
+    def __init__(self, doc, clean_paragraphs=True):
         self.run = []
         self.propStack = [{}]
         self.block = None
 
         self.listLevel = None
         self.listStack = [doc]
+
+        self.clean_paragraphs = clean_paragraphs
 
 
     def flushRun(self):
@@ -237,6 +240,9 @@ class DocBuilder(object):
 
         if not runs:
             self.block = None
+            return
+
+        if not self.clean_paragraphs:
             return
 
         joinedRuns = []

@@ -580,6 +580,8 @@ class Group(object):
     def handle_rdblquote(self):
         self.content.append(u'\u201D')
 
+    def handle_tab(self):
+        self.content.append(u'\t')
 
     def handle_field(self):
         def finalize():

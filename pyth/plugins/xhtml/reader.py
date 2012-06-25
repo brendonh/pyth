@@ -55,7 +55,7 @@ class XHTMLReader(PythReader):
                 text = unicode(node)
                 lines = [x.strip() for x in text.splitlines()]
                 text = ' '.join(lines)
-                node.replaceWith(text)
+                node.replaceWith(BeautifulSoup.BeautifulSoup(text))
         soup = BeautifulSoup.BeautifulSoup(unicode(soup))
         # replace all <br/> tag by newline character
         for node in soup.findAll('br'):

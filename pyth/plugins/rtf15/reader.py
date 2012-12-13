@@ -458,7 +458,10 @@ class Group(object):
             self.fontNum = int(fontNum)
             self._setFontCharset()
         elif self.charsetTable is not None:
-            self.charset = self.charsetTable[int(fontNum)]
+            try:
+                self.charset = self.charsetTable[int(fontNum)]
+            except KeyError:  # fontNum not found in charsetTable, just ignore
+                pass
 
     def handle_fcharset(self, charsetNum):
         if 'FONT_TABLE' in (self.parent.specialMeaning, self.specialMeaning):
@@ -496,7 +499,7 @@ class Group(object):
 
     def handle_u(self, codepoint):
         codepoint = int(codepoint)
-        try: 
+        try:
             char = unichr(codepoint)
         except ValueError:
             if self.reader.errors == 'replace':

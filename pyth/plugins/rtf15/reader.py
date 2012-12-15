@@ -460,8 +460,12 @@ class Group(object):
         elif self.charsetTable is not None:
             try:
                 self.charset = self.charsetTable[int(fontNum)]
-            except KeyError:  # fontNum not found in charsetTable, just ignore
-                pass
+            except KeyError:
+                # fontNum not found in charsetTable, ignore if requested
+                if self.reader.errors == 'ignore':
+                    pass
+                else:
+                    raise
 
     def handle_fcharset(self, charsetNum):
         if 'FONT_TABLE' in (self.parent.specialMeaning, self.specialMeaning):

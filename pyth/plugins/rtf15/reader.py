@@ -590,6 +590,9 @@ class Group(object):
     def handle_tab(self):
         self.content.append(u'\t')
 
+    def handle_trowd(self):
+        self.content.append(u'\n')
+
     def handle_field(self):
         def finalize():
             if len(self.content) != 2:

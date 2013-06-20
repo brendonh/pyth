@@ -12,11 +12,11 @@ from pyth.plugins.xhtml.css import CSS
 class XHTMLReader(PythReader):
 
     @classmethod
-    def read(self, source, css_source=None, encoding="utf-8", default_url=""):
+    def read(self, source, css_source=None, encoding="utf-8", default_url=None):
         reader = XHTMLReader(source, css_source, encoding, default_url)
         return reader.go()
 
-    def __init__(self, source, css_source=None, encoding="utf-8", default_url=""):
+    def __init__(self, source, css_source=None, encoding="utf-8", default_url=None):
         self.source = source
         self.css_source = css_source
         self.encoding = encoding
@@ -104,6 +104,10 @@ class XHTMLReader(PythReader):
         a_node = node.findParent('a')
         if not a_node:
             return None
+
+        if self.default_url is None:
+            return a_node.get('href')
+
         if a_node.get('href').startswith("http://"):
             return a_node.get('href')
         elif a_node.get('href').startswith("/"):

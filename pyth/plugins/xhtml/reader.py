@@ -12,14 +12,15 @@ from pyth.plugins.xhtml.css import CSS
 class XHTMLReader(PythReader):
 
     @classmethod
-    def read(self, source, css_source=None, encoding="utf-8"):
-        reader = XHTMLReader(source, css_source, encoding)
+    def read(self, source, css_source=None, encoding="utf-8", default_url=""):
+        reader = XHTMLReader(source, css_source, encoding, default_url)
         return reader.go()
 
-    def __init__(self, source, css_source=None, encoding="utf-8"):
+    def __init__(self, source, css_source=None, encoding="utf-8", default_url=""):
         self.source = source
         self.css_source = css_source
         self.encoding = encoding
+        self.default_url = default_url
 
     def go(self):
         soup = BeautifulSoup.BeautifulSoup(self.source,
@@ -103,7 +104,12 @@ class XHTMLReader(PythReader):
         a_node = node.findParent('a')
         if not a_node:
             return None
-        return a_node.get('href')
+        if a_node.get('href').startswith("http://"):
+            return a_node.get('href')
+        elif a_node.get('href').startswith("/"):
+            return self.default_url + a_node.get('href')
+        else:
+            return self.default_url + "/" + a_node.get('href')
 
     def process_text(self, node):
         """

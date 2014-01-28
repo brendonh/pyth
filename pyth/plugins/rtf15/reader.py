@@ -382,6 +382,13 @@ class Group(object):
         if control == '*':
             self.destination = True
             return
+        
+        if self.image and control in ['emfblip', 'pngblip', 'jpegblip', 'macpict', 'pmmetafile', 'wmetafile', 'dibitmap', 
+                                      'wbitmap', 'wbmbitspixel', 'wbmplanes', 'wbmwidthbytes', 'picw', 'pich', 'picwgoal', 
+                                      'pichgoal', 'picscalex', 'picscaley', 'picscaled', 'piccropt', 'piccropb', 'piccropr', 
+                                      'piccropl', 'picbmp', 'picbpp', 'bin', 'blipupi', 'blipuid', 'bliptag', 'wbitmap']:
+            self.content.append(ImageMarker(control, digits))
+            return
 
         handler = getattr(self, 'handle_%s' % control, None)
         if handler is None:
@@ -610,39 +617,11 @@ class Group(object):
     def handle_trowd(self):
         self.content.append(u'\n')
         
-    #Image control stuff
+    #Handle the image tag
     def handle_pict(self):
         p = Pict()
         self.content.append(p)
-        self.image = p
-    
-    def handle_wmetafile(self, val):
-        self.content.append(ImageMarker("wmetafile", val))
-
-    def handle_picw(self,val):
-        self.content.append(ImageMarker("width", val))
-        
-    def handle_pich(self,val):
-        self.content.append(ImageMarker("height", val))
-        
-    def handle_picwgoal(self,val):
-        self.content.append(ImageMarker("outwidth", val))
-        
-    def handle_pichgoal(self,val):
-        self.content.append(ImageMarker("outheight", val))
-        
-    def handle_picscalex(self,val):
-        self.content.append(ImageMarker("scalewidth", val))
-        
-    def handle_picscaley(self,val):
-        self.content.append(ImageMarker("scaleheight", val))
-        
-    def handle_wbmbitspixel(self,val):
-        self.content.append(ImageMarker("bitdepth", val))
-    
-    def handle_wbmwidthbytes(self,val):
-        self.content.append(ImageMarker("bytesperline", val))
-    
+        self.image = p    
     
     def handle_field(self):
         def finalize():

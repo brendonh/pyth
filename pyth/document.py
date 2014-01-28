@@ -76,8 +76,6 @@ class Text(_PythBase):
     def __repr__(self):
         return "Text('%s' %s)" % ("".join("[%s]" % r.encode("utf-8") for r in self.content), self.properties)
 
-
-
 class Paragraph(_PythBase):
     """
     Paragraphs contain zero or more text runs.
@@ -90,6 +88,17 @@ class Paragraph(_PythBase):
 
     validProperties = ()
     contentType = Text
+    
+class Image(Paragraph):
+    """
+    An image is stored in bytes, all units are in pixel, percentages or plain integers as it makes sense. The properties probably need to be extended by quite a lot to fully support images.
+    """
+    
+    validProperties = ('picttype', 'width', 'height', 'outwidth', 'outheight', 'scalewidth', 'scaleheight', 'bitdepth', 'bytesperline', 'wmetafile')
+    contentType = bytes
+
+    def __repr__(self):
+        return "Image(%d bytes, %s)" %(len(self.content[0]),self.properties)
 
 
 

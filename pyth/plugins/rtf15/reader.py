@@ -212,7 +212,7 @@ class DocBuilder(object):
         self.run = []
         self.propStack = [{}]
         self.block = None
-
+        self.isImage = False
         self.listLevel = None
         self.listStack = [doc]
 
@@ -222,10 +222,16 @@ class DocBuilder(object):
     def flushRun(self):
         if self.block is None:
             self.block = document.Paragraph()
-
-        self.block.content.append(
-            document.Text(self.propStack[-1].copy(),
-                          [u"".join(self.run)]))
+        
+        if self.isImage:
+            self.block.content.append(
+                document.Image(self.propStack[-1].copy(),
+                               [str("".join(self.run))]))
+            self.isImage = False
+        else:
+            self.block.content.append(
+                document.Text(self.propStack[-1].copy(),
+                              [u"".join(self.run)]))
 
         self.run[:] = []
 
@@ -313,7 +319,10 @@ class DocBuilder(object):
             self.listStack[-1].append(l)
 
         self.block = None
-
+    
+    def handle_Pict(self, pict):
+        self.flushRun()
+        self.isImage = True
 
     def handle_Reset(self, _):
         self.flushRun()
@@ -334,6 +343,13 @@ class DocBuilder(object):
             if marker.name in self.propStack[-1]:
                 del self.propStack[-1][marker.name]
 
+    def handle_ImageMarker(self, marker):
+        if marker.val:
+            self.propStack[-1][marker.name] = marker.val
+        else:
+            if marker.name in self.propStack[-1]:
+                del self.propStack[-1][marker.name]
+    
 
 
 class Group(object):
@@ -352,6 +368,7 @@ class Group(object):
         self.specialMeaning = None
         self.skip = False
         self.url = None
+        self.image = None
         self.currentParaTag = None
         self.destination = False
 
@@ -592,7 +609,41 @@ class Group(object):
 
     def handle_trowd(self):
         self.content.append(u'\n')
+        
+    #Image control stuff
+    def handle_pict(self):
+        p = Pict()
+        self.content.append(p)
+        self.image = p
+    
+    def handle_wmetafile(self, val):
+        self.content.append(ImageMarker("wmetafile", val))
 
+    def handle_picw(self,val):
+        self.content.append(ImageMarker("width", val))
+        
+    def handle_pich(self,val):
+        self.content.append(ImageMarker("height", val))
+        
+    def handle_picwgoal(self,val):
+        self.content.append(ImageMarker("outwidth", val))
+        
+    def handle_pichgoal(self,val):
+        self.content.append(ImageMarker("outheight", val))
+        
+    def handle_picscalex(self,val):
+        self.content.append(ImageMarker("scalewidth", val))
+        
+    def handle_picscaley(self,val):
+        self.content.append(ImageMarker("scaleheight", val))
+        
+    def handle_wbmbitspixel(self,val):
+        self.content.append(ImageMarker("bitdepth", val))
+    
+    def handle_wbmwidthbytes(self,val):
+        self.content.append(ImageMarker("bytesperline", val))
+    
+    
     def handle_field(self):
         def finalize():
             if len(self.content) != 2:
@@ -676,7 +727,16 @@ class ReadableMarker(object):
         else:
             return "!%s::%s!" % (self.name, self.val)
 
+class ImageMarker(ReadableMarker):
+    pass
 
+class Pict(ImageMarker):
+    def __init__(self):
+        ImageMarker.__init__(self, "Pict")
+
+    def __repr__(self):
+        return "!Image!"
+            
 class Para(ReadableMarker):
     listLevel = None
 

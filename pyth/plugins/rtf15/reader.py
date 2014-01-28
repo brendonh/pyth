@@ -212,6 +212,7 @@ class DocBuilder(object):
         self.run = []
         self.propStack = [{}]
         self.block = None
+
         self.isImage = False
         self.listLevel = None
         self.listStack = [doc]
@@ -383,10 +384,11 @@ class Group(object):
             self.destination = True
             return
         
-        if self.image and control in ['emfblip', 'pngblip', 'jpegblip', 'macpict', 'pmmetafile', 'wmetafile', 'dibitmap', 
-                                      'wbitmap', 'wbmbitspixel', 'wbmplanes', 'wbmwidthbytes', 'picw', 'pich', 'picwgoal', 
-                                      'pichgoal', 'picscalex', 'picscaley', 'picscaled', 'piccropt', 'piccropb', 'piccropr', 
-                                      'piccropl', 'picbmp', 'picbpp', 'bin', 'blipupi', 'blipuid', 'bliptag', 'wbitmap']:
+        if self.image and control in ['emfblip', 'pngblip', 'jpegblip', 'macpict', 'pmmetafile', 'wmetafile', 
+                                      'dibitmap', 'wbitmap', 'wbmbitspixel', 'wbmplanes', 'wbmwidthbytes', 
+                                      'picw', 'pich', 'picwgoal', 'pichgoal', 'picscalex', 'picscaley', 
+                                      'picscaled', 'piccropt', 'piccropb', 'piccropr', 'piccropl', 'picbmp', 
+                                      'picbpp', 'bin', 'blipupi', 'blipuid', 'bliptag', 'wbitmap']:
             self.content.append(ImageMarker(control, digits))
             return
 

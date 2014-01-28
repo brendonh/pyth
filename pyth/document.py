@@ -59,7 +59,6 @@ class _PythBase(object):
         self.content.append(item)
 
 
-
 class Text(_PythBase):
     """
     Text runs are strings of text with markup properties,
@@ -76,7 +75,7 @@ class Text(_PythBase):
     def __repr__(self):
         return "Text('%s' %s)" % ("".join("[%s]" % r.encode("utf-8") for r in self.content), self.properties)
 
-        
+
 class Paragraph(_PythBase):
     """
     Paragraphs contain zero or more text runs.
@@ -89,8 +88,8 @@ class Paragraph(_PythBase):
 
     validProperties = ()
     contentType = Text
-    
- 
+
+
 class Image(Paragraph):
     """
     An image is stored in bytes. All properties of images from the rtf definition are allowed.
@@ -105,7 +104,7 @@ class Image(Paragraph):
     def __repr__(self):
         return "Image(%d bytes, %s)" %(len(self.content[0]),self.properties)
 
-        
+
 class ListEntry(_PythBase):
     """
     A list of paragraphs representing one item in a list

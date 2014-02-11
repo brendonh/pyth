@@ -102,7 +102,7 @@ class Image(Paragraph):
     contentType = bytes
 
     def __repr__(self):
-        return "Image(%d bytes, %s)" %(len(self.content[0]),self.properties)
+        return "Image(%d bytes, %s)" %(len(self.content[0])/2,self.properties)
 
 
 class ListEntry(_PythBase):

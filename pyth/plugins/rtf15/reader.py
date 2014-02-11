@@ -349,7 +349,10 @@ class DocBuilder(object):
             self.propStack[-1][marker.name] = marker.val
         else:
             if marker.name in self.propStack[-1]:
+                # Is there any toggle that is applied to images?
                 del self.propStack[-1][marker.name]
+            else:
+                self.propStack[-1][marker.name] = True
     
 
 
@@ -379,7 +382,6 @@ class Group(object):
 
 
     def handle(self, control, digits):
-
         if control == '*':
             self.destination = True
             return
@@ -623,7 +625,9 @@ class Group(object):
     def handle_pict(self):
         p = Pict()
         self.content.append(p)
-        self.image = p    
+        self.image = p
+        #Remove the destination control group of the parent, so that the image is preserved
+        self.parent.destination = False
     
     def handle_field(self):
         def finalize():

@@ -213,6 +213,7 @@ class DocBuilder(object):
         self.propStack = [{}]
         self.block = None
 
+        self.isImage = False
         self.listLevel = None
         self.listStack = [doc]
 
@@ -222,10 +223,16 @@ class DocBuilder(object):
     def flushRun(self):
         if self.block is None:
             self.block = document.Paragraph()
-
-        self.block.content.append(
-            document.Text(self.propStack[-1].copy(),
-                          [u"".join(self.run)]))
+        
+        if self.isImage:
+            self.block.content.append(
+                document.Image(self.propStack[-1].copy(),
+                               [str("".join(self.run))]))
+            self.isImage = False
+        else:
+            self.block.content.append(
+                document.Text(self.propStack[-1].copy(),
+                              [u"".join(self.run)]))
 
         self.run[:] = []
 
@@ -313,7 +320,10 @@ class DocBuilder(object):
             self.listStack[-1].append(l)
 
         self.block = None
-
+    
+    def handle_Pict(self, pict):
+        self.flushRun()
+        self.isImage = True
 
     def handle_Reset(self, _):
         self.flushRun()
@@ -334,6 +344,16 @@ class DocBuilder(object):
             if marker.name in self.propStack[-1]:
                 del self.propStack[-1][marker.name]
 
+    def handle_ImageMarker(self, marker):
+        if marker.val:
+            self.propStack[-1][marker.name] = marker.val
+        else:
+            if marker.name in self.propStack[-1]:
+                # Is there any toggle that is applied to images?
+                del self.propStack[-1][marker.name]
+            else:
+                self.propStack[-1][marker.name] = True
+    
 
 
 class Group(object):
@@ -352,6 +372,7 @@ class Group(object):
         self.specialMeaning = None
         self.skip = False
         self.url = None
+        self.image = None
         self.currentParaTag = None
         self.destination = False
 
@@ -361,9 +382,16 @@ class Group(object):
 
 
     def handle(self, control, digits):
-
         if control == '*':
             self.destination = True
+            return
+        
+        if self.image and control in ['emfblip', 'pngblip', 'jpegblip', 'macpict', 'pmmetafile', 'wmetafile', 
+                                      'dibitmap', 'wbitmap', 'wbmbitspixel', 'wbmplanes', 'wbmwidthbytes', 
+                                      'picw', 'pich', 'picwgoal', 'pichgoal', 'picscalex', 'picscaley', 
+                                      'picscaled', 'piccropt', 'piccropb', 'piccropr', 'piccropl', 'picbmp', 
+                                      'picbpp', 'bin', 'blipupi', 'blipuid', 'bliptag', 'wbitmap']:
+            self.content.append(ImageMarker(control, digits))
             return
 
         handler = getattr(self, 'handle_%s' % control, None)
@@ -592,7 +620,15 @@ class Group(object):
 
     def handle_trowd(self):
         self.content.append(u'\n')
-
+        
+    #Handle the image tag
+    def handle_pict(self):
+        p = Pict()
+        self.content.append(p)
+        self.image = p
+        #Remove the destination control group of the parent, so that the image is preserved
+        self.parent.destination = False
+    
     def handle_field(self):
         def finalize():
             if len(self.content) != 2:
@@ -676,7 +712,16 @@ class ReadableMarker(object):
         else:
             return "!%s::%s!" % (self.name, self.val)
 
+class ImageMarker(ReadableMarker):
+    pass
 
+class Pict(ImageMarker):
+    def __init__(self):
+        ImageMarker.__init__(self, "Pict")
+
+    def __repr__(self):
+        return "!Image!"
+            
 class Para(ReadableMarker):
     listLevel = None
 

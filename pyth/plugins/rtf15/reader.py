@@ -590,6 +590,11 @@ class Group(object):
 
     def handle_super(self):
         self.content.append(ReadableMarker("super", True))
+    
+    #Turns off superscripting or subscripting
+    def handle_nosupersub(self):
+        self.content.append(ReadableMarker("sub", False))
+        self.content.append(ReadableMarker("super", False))
 
     def handle_dn(self, amount):
         self.content.append(ReadableMarker("sub", True))

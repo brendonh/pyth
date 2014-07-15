@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
 setup(name="pyth",
-      version="0.5.6",
+      version="0.6.0",
       packages = find_packages(),
       zip_safe = False,
 
       description="Python text markup and conversion",
       author="Brendon Hogger",
-      author_email="brendonh@taizilla.com",
+      author_email="brendonh@gmail.com",
       url="http://wiki.github.com/brendonh/pyth",
       long_description=open('README').read(),
 
@@ -17,6 +17,7 @@ setup(name="pyth",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
         "Topic :: Office/Business",
         "Topic :: Software Development :: Libraries",
         "Topic :: Text Editors :: Word Processors",

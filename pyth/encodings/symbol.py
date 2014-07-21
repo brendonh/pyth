@@ -96,7 +96,8 @@ info = codecs.CodecInfo(
 )
 
 def search(name):
-    # What the hell is this actually supposed to do?
-    return info
+    if name == info.name:
+        return info
+    return None
 
 codecs.register(search)

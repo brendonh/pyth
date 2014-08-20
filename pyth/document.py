@@ -69,7 +69,7 @@ class Text(_PythBase):
     They do not inherit their properties from anything.
     """
 
-    validProperties = ('bold', 'italic', 'underline', 'url', 'sub', 'super')
+    validProperties = ('bold', 'italic', 'underline', 'url', 'sub', 'super', 'strike')
     contentType = unicode
 
     def __repr__(self):

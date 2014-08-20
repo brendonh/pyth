@@ -576,6 +576,11 @@ class Group(object):
         self.content.append(ReadableMarker("underline", val))
 
 
+    def handle_strike(self, onOff=None):
+        val = onOff in (None, "", "1")
+        self.content.append(ReadableMarker("strike", val))
+
+
     def handle_ilvl(self, level):
         if self.currentParaTag is not None:
             self.currentParaTag.listLevel = level

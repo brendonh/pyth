@@ -508,6 +508,7 @@ class Group(object):
 
 
     def handle_ansi_escape(self, code):
+        code2 = code
         code = int(code, 16)
 
         if isinstance(self.charset, dict):
@@ -518,8 +519,11 @@ class Group(object):
                 char = unichr(uni_code)
 
         else:
-            char = chr(code).decode(self.charset, self.reader.errors)
-
+            if self.charset == 'cp932':
+                code = '0x' + code2
+                char = code.decode(self.charset, self.reader.errors)
+            else:
+                char = chr(code).decode(self.charset, self.reader.errors)
         self.content.append(char)
 
 

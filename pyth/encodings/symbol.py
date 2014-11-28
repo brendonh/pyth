@@ -100,4 +100,4 @@ def search(name):
         return info
     return None
 
-codecs.register(search)
+#codecs.register(search)

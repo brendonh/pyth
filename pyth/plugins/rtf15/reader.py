@@ -368,6 +368,7 @@ class Group(object):
         else:
             self.props = {}
             self.charset = self.reader.charset
+        self.isPcData = False
 
         self.specialMeaning = None
         self.skip = False
@@ -470,6 +471,13 @@ class Group(object):
         self.specialMeaning = 'FONT_TABLE'
         self.charsetTable = {}
 
+    def handle_falt(self):
+        self.specialMeaning = 'FONT_ALT_NAME'
+        self.isPcData = True
+
+    def handle_fname(self):
+        self.specialMeaning = 'NON_TAGGED_NAME'
+        self.isPcData = True
 
     def _setFontCharset(self, charset=None):
         if charset is None:
@@ -485,6 +493,7 @@ class Group(object):
         if 'FONT_TABLE' in (self.parent.specialMeaning, self.specialMeaning):
             self.fontNum = int(fontNum)
             self._setFontCharset()
+            self.isPcData = True
         elif self.charsetTable is not None:
             try:
                 self.charset = self.charsetTable[int(fontNum)]
@@ -518,7 +527,9 @@ class Group(object):
                 char = unichr(uni_code)
 
         else:
-            char = chr(code).decode(self.charset, self.reader.errors)
+            char = chr(code)
+            if not self.isPcData:
+                char = char.decode(self.charset, self.reader.errors)
 
         self.content.append(char)
 

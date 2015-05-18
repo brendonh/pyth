@@ -724,12 +724,6 @@ class Group(object):
 
 
 
-
-class Skip(object):
-    def __init__(self, count):
-        self.count = count
-
-
 class ReadableMarker(object):
     def __init__(self, name=None, val=None):
         if name is not None:

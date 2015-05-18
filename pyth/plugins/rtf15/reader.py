@@ -13,7 +13,7 @@ from pyth.format import PythReader
 from pyth.encodings import symbol
 
 _CONTROLCHARS = set(string.ascii_letters + string.digits + "-*")
-_DIGITS = set(string.digits)
+_DIGITS = set(string.digits + "-")
 
 
 _CODEPAGES = {
@@ -56,17 +56,17 @@ _CODEPAGES = {
     255: "cp850",  # OEM
 }
 
-# All the ones named by number in my 2.6 encodings dir
+# All the ones named by number in my 2.6 encodings dir, and those listed above
 _CODEPAGES_BY_NUMBER = dict(
-    (x, "cp%s" % x) for x in (37, 1006, 1026, 1140, 1250, 1251, 1252, 1253, 1254, 1255,
-                              1256, 1257, 1258, 424, 437, 500, 737, 775, 850, 852, 855,
-                              856, 857, 860, 861, 862, 863, 864, 865, 866, 869, 874,
-                              875, 932, 949, 950))
+    (x, "cp%s" % x) for x in (37, 424, 437, 500, 737, 775, 850, 852, 855, 856, 
+                              857, 860, 861, 862, 863, 864, 865, 866, 869, 874,
+                              875, 932, 936, 949, 950, 1006, 1026, 1140, 1250, 
+                              1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258, 1361))
 
 # Miscellaneous, incomplete
 _CODEPAGES_BY_NUMBER.update({
-   10000: "mac-roman",
-   10007: "mac-greek",
+    10000: "mac-roman",
+    10007: "mac-greek"
 })
 
 
@@ -123,6 +123,7 @@ class Rtf15Reader(PythReader):
                 subGroup = Group(self, self.group, self.charsetTable)
                 self.stack.append(subGroup)
                 subGroup.skip = self.group.skip
+                self.group.flushChars()
                 self.group = subGroup
             elif next == '}':
                 subGroup = self.stack.pop()
@@ -380,9 +381,20 @@ class Group(object):
         self.charsetTable = charsetTable
 
         self.content = []
+        self.charBuffer = []
+        self.skipCount = 0
+
+
+    def flushChars(self):
+        chars = "".join(self.charBuffer).decode(self.charset, self.reader.errors)
+        self.content.append(chars)
+        self.charBuffer = []
 
 
     def handle(self, control, digits):
+        if self.charBuffer and control != "ansi_escape":
+            self.flushChars()
+
         if control == '*':
             self.destination = True
             return
@@ -405,8 +417,11 @@ class Group(object):
             handler()
 
 
-    def char(self, char):
-        self.content.append(char.decode(self.charset, self.reader.errors))
+    def char(self, byte):
+        if self.skipCount:
+            self.skipCount -= 1
+        else:
+            self.charBuffer.append(byte)
 
 
     def _finalize(self):
@@ -420,17 +435,7 @@ class Group(object):
         if self.skip:
             return
 
-        stuff = []
-        i = 0
-        while i < len(self.content):
-            thing = self.content[i]
-            if isinstance(thing, Skip):
-                i += thing.count
-            else:
-                stuff.append(thing)
-            i += 1
-
-        self.content = stuff
+        self.flushChars()
 
 
     # This is only the default,
@@ -529,7 +534,8 @@ class Group(object):
         else:
             char = chr(code)
             if not self.isPcData:
-                char = char.decode(self.charset, self.reader.errors)
+                self.char(char)
+                return
 
         self.content.append(char)
 
@@ -543,7 +549,7 @@ class Group(object):
     def handle_u(self, codepoint):
         codepoint = int(codepoint)
         try:
-            char = unichr(codepoint)
+            char = unichr(codepoint % 2**16)
         except ValueError:
             if self.reader.errors == 'replace':
                 char = '?'
@@ -551,7 +557,10 @@ class Group(object):
                 raise
 
         self.content.append(char)
-        self.content.append(Skip(self.props.get('unicode_skip', 1)))
+        self.skipCount = self.props.get('unicode_skip', 1)
+
+    def handle_uc(self, skipBytes):
+        self.props['unicode_skip'] = int(skipBytes)
 
 
     def handle_par(self):

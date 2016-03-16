@@ -469,7 +469,10 @@ class Group(object):
         if codepage in _CODEPAGES_BY_NUMBER:
             self.charset = self.reader.charset = _CODEPAGES_BY_NUMBER[codepage]
         else:
-            raise ValueError("Unknown codepage %s" % codepage)
+            if self.reader.errors == 'ignore':
+                pass
+            else:
+                raise ValueError("Unknown codepage %s" % codepage)
 
 
     def handle_fonttbl(self):

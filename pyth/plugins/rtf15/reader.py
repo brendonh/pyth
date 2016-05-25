@@ -170,9 +170,19 @@ class Rtf15Reader(PythReader):
             first = False
 
             if next == "'":
-                # ANSI escape, takes two hex digits
-                chars.extend("ansi_escape")
-                digits.extend(self.source.read(2))
+                possible_digits = self.source.read(2)
+                try:
+                    # Test for ANSI escape
+                    true_digits = [
+                        int(possible_digits[0], 16),
+                        int(possible_digits[1], 16)
+                    ]
+                    # ANSI escape, takes two hex digits
+                    chars.extend("ansi_escape")
+                    digits.extend(true_digits)
+                except ValueError:
+                    # It's just an escaped quote mark, so reset the file header
+                    self.source.seek(-2, 1)
                 break
 
             if next == ' ':

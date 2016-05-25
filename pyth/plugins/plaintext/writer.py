@@ -46,6 +46,8 @@ class PlaintextWriter(PythWriter):
     def paragraph(self, paragraph, prefix=""):
         content = []
         for text in paragraph.content:
+            if text.__class__ is document.Image:
+                continue
             content.append(u"".join(text.content))
         content = u"".join(content).encode("utf-8")
             

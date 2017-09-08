@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from pyth.plugins.xhtml.writer import XHTMLWriter
 import pythonDoc
 
@@ -17,4 +19,4 @@ docTemplate = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http:
 
 if __name__ == "__main__":
     doc = pythonDoc.buildDoc()
-    print docTemplate % XHTMLWriter.write(doc, pretty=True).getvalue()
+    print(docTemplate % XHTMLWriter.write(doc, pretty=True).getvalue())

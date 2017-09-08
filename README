@@ -30,7 +30,7 @@ Design principles
 
 * Ignore unsupported information in input formats (e.g. page layout)
 * Ignore font issues -- output in a single font.
-* Ignore specific text sizes -- support relative sizes (bigger, littler) only. Output in a single base size.
+* Ignore specific text sizes, but maintain italics, boldface, subscript/superscript
 * Have no dependencies unless they are written in Python, and work
 * Make it easy to add support for new formats, by using an architecture based on *plugins* and *adapters*.
 
@@ -54,3 +54,36 @@ the tests directory and invoke nosetest from there (make sure that
 pyth module is in PYTHONPATH).
 
 .. _python nose: http://code.google.com/p/python-nose/
+
+
+Python 3 migration
+==================
+
+The code was originally written for Python 2.
+It has been upgraded to Python 3 compatibility via 'modernize'.
+This does not mean it will actually work!
+
+pyth.plugins.rtf15.reader has been debugged and now appears to work correctly.
+pyth.plugins.xhtml.writer has been debugged and now appears to work correctly.
+pyth.plugins.plaintext.writer has been debugged and now appears to work correctly.
+Everything else: unknown!
+See directory py3migration for a bit more detail.
+(If you find something is broken that worked before, please
+either fix it or stick to pyth version 0.6.0.)
+
+
+Limitations
+===========
+
+pyth.plugins.rtf15.reader:
+- bulleted or enumerated items will be returned
+  as plain paragraphs (no indentation, no bullets).
+- cannot cope with Symbol font correctly:
+  - from MS Word: lower-coderange characters (greek mostly) work
+  - from MS Word: higher-coderange characters are missing, because
+    Word encodes them in a horribly complicated manner not supported
+    by pyth currently
+  - from Wordpad: lower- and higher-coderange characters come out in
+    the wrong encoding (ANSI, I think)
+
+Other: (to be documented)

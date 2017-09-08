@@ -1,6 +1,8 @@
 """
 unit tests of the pdf writer
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 import unittest
 import subprocess
@@ -35,7 +37,7 @@ class TestWritePDF(unittest.TestCase):
             try:
                 proc = subprocess.Popen(command, stdout=subprocess.PIPE)
             except OSError:
-                print "Make sure that pdftohtml is installed"
+                print("Make sure that pdftohtml is installed")
                 raise
             ret = proc.communicate()[0]
             return ret
@@ -87,7 +89,7 @@ class TestWritePDF(unittest.TestCase):
     def test_rst(self):
         doc = PythonReader.read(P[u"the-text"])
         pdf = PDFWriter.write(doc).getvalue()
-        print pdf
+        print(pdf)
         html = self.pdf_to_html(pdf)
         assert "the-text" in html, html
 

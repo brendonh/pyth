@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 from pyth.plugins.xhtml.reader import XHTMLReader
@@ -49,4 +51,4 @@ if __name__ == '__main__':
     # Parse the document and then reconstruct it using the xhtml
     # writer.
     doc = XHTMLReader.read(content, css)
-    print XHTMLWriter.write(doc).getvalue()
+    print(XHTMLWriter.write(doc).getvalue())

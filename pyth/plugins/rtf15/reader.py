@@ -5,15 +5,23 @@ http://www.biblioscape.com/rtf15_spec.htm
 
 This module is potentially compatible with RTF versions up to 1.9.1,
 but may not ignore all necessary control groups.
+
+RTF is 8-bit based. Therefore, all input data is represented as
+a binary string (with b prefix for literals).
+Output data is unicode.
+Python-related constants, pyth-internal constants and error messages are plain strings
+(i.e. byte strings in Python 2, Unicode strings in Python 3):
 """
+from __future__ import absolute_import
 import string, re, itertools, struct
 
 from pyth import document
 from pyth.format import PythReader
 from pyth.encodings import symbol
+import six
 
-_CONTROLCHARS = set(string.ascii_letters + string.digits + "-*")
-_DIGITS = set(string.digits + "-")
+_CONTROLCHARS = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-*'
+_DIGITS = b'0123456789-'
 
 
 _CODEPAGES = {
@@ -96,7 +104,7 @@ class Rtf15Reader(PythReader):
     def go(self):
         self.source.seek(0)
 
-        if self.source.read(5) != r"{\rtf":
+        if self.source.read(5) != br"{\rtf":
             from pyth.errors import WrongFileType
             raise WrongFileType("Doesn't look like an RTF file")
 
@@ -112,22 +120,24 @@ class Rtf15Reader(PythReader):
 
     def parse(self):
         while True:
-            next = self.source.read(1)
+            nextbyte = self.source.read(1)
 
-            if not next:
+            if not nextbyte:
                 break
 
-            if next in '\r\n':
+            if nextbyte in b'\r\n':
                 continue
-            if next == '{':
+            if nextbyte == b'{':
                 subGroup = Group(self, self.group, self.charsetTable)
                 self.stack.append(subGroup)
                 subGroup.skip = self.group.skip
                 self.group.flushChars()
                 self.group = subGroup
-            elif next == '}':
+            elif nextbyte == b'}':
                 subGroup = self.stack.pop()
                 self.group = self.stack[-1]
+                if self.group.specialMeaning == 'FONT_TABLE':
+                    subGroup.ignore()  # else font names may appear as text
                 subGroup.finalize()
 
                 if subGroup.specialMeaning == 'FONT_TABLE':
@@ -139,57 +149,57 @@ class Rtf15Reader(PythReader):
                 # inside groups we don't care about anyway
                 continue
 
-            elif next == '\\':
+            elif nextbyte == b'\\':
                 control, digits = self.getControl()
                 self.group.handle(control, digits)
             else:
-                self.group.char(next)
+                self.group.char(nextbyte)  # within-group text
 
 
     def getControl(self):
-        chars = []
-        digits = []
-        current = chars
-        first = True
+        chars = []  # for output 1
+        digits = [] # for output 2
+        current = chars  # what part we are reading
+        is_first = True  # true during first char only
         while True:
-            next = self.source.read(1)
+            nextbyte = self.source.read(1)  # str in Python 2, bytes in Python 3
 
-            if not next:
+            if not nextbyte:
                 break
 
-            if first and next in '\\{}':
-                chars.extend("control_symbol")
-                digits.append(next)
+            if is_first and nextbyte in b'\\{}':
+                chars.append(b"control_symbol")
+                digits.append(nextbyte)
                 break
 
-            if first and next in '\r\n':
+            if is_first and nextbyte in b'\r\n':
                 # Special-cased in RTF, equivalent to a \par
-                chars.extend("par")
+                chars.append(b"par")
                 break
 
-            first = False
+            is_first = False
 
-            if next == "'":
+            if nextbyte == b"'":
                 # ANSI escape, takes two hex digits
-                chars.extend("ansi_escape")
-                digits.extend(self.source.read(2))
+                chars.append(b"ansi_escape")
+                digits.append(self.source.read(2))
                 break
 
-            if next == ' ':
+            if nextbyte == b' ':
                 # Don't rewind, the space is just a delimiter
                 break
 
-            if next not in _CONTROLCHARS:
+            if nextbyte not in _CONTROLCHARS:
                 # Rewind, it's a meaningful character
                 self.source.seek(-1, 1)
                 break
 
-            if next in _DIGITS:
+            if nextbyte in _DIGITS:
                 current = digits
 
-            current.append(next)
+            current.append(nextbyte)
 
-        return "".join(chars), "".join(digits)
+        return b"".join(chars), b"".join(digits)
 
 
     def build(self):
@@ -228,7 +238,7 @@ class DocBuilder(object):
         if self.isImage:
             self.block.content.append(
                 document.Image(self.propStack[-1].copy(),
-                               [str("".join(self.run))]))
+                               [b"".join(self.run)]))
             self.isImage = False
         else:
             self.block.content.append(
@@ -293,6 +303,12 @@ class DocBuilder(object):
 
 
     def handle_unicode(self, bit):
+        # text strings in Python 2
+        self.run.append(bit)
+
+
+    def handle_str(self, bit):
+        # text strings in Python 3
         self.run.append(bit)
 
 
@@ -312,13 +328,14 @@ class DocBuilder(object):
         prevListLevel = self.listLevel
         self.listLevel = para.listLevel
 
-        if self.listLevel > prevListLevel:
-            l = document.List()
-            self.listStack.append(l)
+        if prevListLevel is not None and self.listLevel is not None:
+            if self.listLevel > prevListLevel:
+                l = document.List()
+                self.listStack.append(l)
 
-        elif self.listLevel < prevListLevel:
-            l = self.listStack.pop()
-            self.listStack[-1].append(l)
+            elif self.listLevel < prevListLevel:
+                l = self.listStack.pop()
+                self.listStack[-1].append(l)
 
         self.block = None
     
@@ -386,28 +403,28 @@ class Group(object):
 
 
     def flushChars(self):
-        chars = "".join(self.charBuffer).decode(self.charset, self.reader.errors)
+        chars = b"".join(self.charBuffer).decode(self.charset, self.reader.errors)
         self.content.append(chars)
         self.charBuffer = []
 
 
     def handle(self, control, digits):
-        if self.charBuffer and control != "ansi_escape":
+        if self.charBuffer and control != b"ansi_escape":  # end of a text range
             self.flushChars()
 
-        if control == '*':
+        if control == b'*':
             self.destination = True
             return
         
-        if self.image and control in ['emfblip', 'pngblip', 'jpegblip', 'macpict', 'pmmetafile', 'wmetafile', 
-                                      'dibitmap', 'wbitmap', 'wbmbitspixel', 'wbmplanes', 'wbmwidthbytes', 
-                                      'picw', 'pich', 'picwgoal', 'pichgoal', 'picscalex', 'picscaley', 
-                                      'picscaled', 'piccropt', 'piccropb', 'piccropr', 'piccropl', 'picbmp', 
-                                      'picbpp', 'bin', 'blipupi', 'blipuid', 'bliptag', 'wbitmap']:
+        if self.image and control in [b'emfblip', b'pngblip', b'jpegblip', b'macpict', b'pmmetafile', b'wmetafile',
+                                      b'dibitmap', b'wbitmap', b'wbmbitspixel', b'wbmplanes', b'wbmwidthbytes',
+                                      b'picw', b'pich', b'picwgoal', b'pichgoal', b'picscalex', b'picscaley',
+                                      b'picscaled', b'piccropt', b'piccropb', b'piccropr', b'piccropl', b'picbmp',
+                                      b'picbpp', b'bin', b'blipupi', b'blipuid', b'bliptag', b'wbitmap']:
             self.content.append(ImageMarker(control, digits))
             return
 
-        handler = getattr(self, 'handle_%s' % control, None)
+        handler = getattr(self, 'handle_%s' % control.decode('ascii'), None)
         if handler is None:
             return
 
@@ -529,10 +546,10 @@ class Group(object):
             if uni_code is None:
                 char = u'?'
             else:
-                char = unichr(uni_code)
+                char = six.unichr(uni_code)
 
         else:
-            char = chr(code)
+            char = six.int2byte(code)
             if not self.isPcData:
                 self.char(char)
                 return
@@ -542,25 +559,27 @@ class Group(object):
 
     def handle_control_symbol(self, symbol):
         # Ignore ~, -, and _, since they are optional crap.
-        if symbol in '\\{}':
-            self.content.append(unicode(symbol))
+        assert len(symbol) == 1
+        if symbol in b'\\{}':
+            #self.content.append(six.text_type(symbol))
+            self.content.append(symbol.decode("ascii"))
 
 
     def handle_u(self, codepoint):
         codepoint = int(codepoint)
         try:
-            char = unichr(codepoint % 2**16)
+            char = six.unichr(codepoint % 2**16)
         except ValueError:
-            if self.reader.errors == 'replace':
-                char = '?'
+            if self.reader.errors == b'replace':
+                char = b'?'
             else:
                 raise
 
         self.content.append(char)
-        self.skipCount = self.props.get('unicode_skip', 1)
+        self.skipCount = self.props.get(b'unicode_skip', 1)
 
     def handle_uc(self, skipBytes):
-        self.props['unicode_skip'] = int(skipBytes)
+        self.props[b'unicode_skip'] = int(skipBytes)
 
 
     def handle_par(self):
@@ -582,7 +601,7 @@ class Group(object):
 
 
     def handle_b(self, onOff=None):
-        val = onOff in (None, "", "1")
+        val = onOff in (None, b"", b"1")
         self.content.append(ReadableMarker("bold", val))
 
 
@@ -613,11 +632,11 @@ class Group(object):
     def handle_up(self, amount):
         self.content.append(ReadableMarker("super", True))
 
-    def handle_super(self):
+    def handle_super(self, amount):
         self.content.append(ReadableMarker("super", True))
 
     #Turns off superscripting or subscripting
-    def handle_nosupersub(self):
+    def handle_nosupersub(self, amount):
         self.content.append(ReadableMarker("sub", False))
         self.content.append(ReadableMarker("super", False))
 
@@ -675,7 +694,7 @@ class Group(object):
             except:
                 return u""
 
-            match = re.match(ur'HYPERLINK "(.*)"', destination)
+            match = re.match(r'HYPERLINK "(.*)"', destination)
             if match:
                 content.skip = False
                 self.content = [ReadableMarker("url", match.group(1)),
@@ -766,7 +785,7 @@ class Pop(ReadableMarker):
     name = "Pop"
 
 
-# Yes, yes, I know, I'll clean it up later.
+# Use singleton objects for the dataless markers:
 Reset = Reset()
 Push = Push()
 Pop = Pop()

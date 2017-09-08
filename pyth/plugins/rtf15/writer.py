@@ -3,11 +3,14 @@ Render documents as RTF 1.5
 
 http://www.biblioscape.com/rtf15_spec.htm
 """
+from __future__ import absolute_import
 
 from pyth import document
 from pyth.format import PythWriter
 
 from cStringIO import StringIO
+import six
+from six.moves import range
 
 
 # XXX Todo -- Make these parameters
@@ -97,7 +100,7 @@ class Rtf15Writer(PythWriter):
 
     def _getFontTable(self):
         output = [r'{\fonttbl']
-        for i, (fontFamily, fontName) in enumerate(self.fonts.iteritems()):
+        for i, (fontFamily, fontName) in enumerate(six.iteritems(self.fonts)):
             output.append(r'{\f%d\f%s %s;}' % (i, fontFamily, fontName))
             if fontFamily == self.fontFamily:
                 self.fontNumber = i

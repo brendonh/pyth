@@ -1,9 +1,11 @@
 """
 Write Pyth documents straight in Python, a la Nevow's Stan.
 """
+from __future__ import absolute_import
 
 from pyth.format import PythReader
 from pyth.document import *
+import six
 
 
 def _convert(content):
@@ -88,27 +90,23 @@ class _PythonBase(object):
     def __str__(self):
         return "%s(%s) [ %s ]" % (
             self.__class__.__name__,
-            ", ".join("%s=%s" % (k, repr(v)) for (k,v) in self.properties.iteritems()),
+            ", ".join("%s=%s" % (k, repr(v)) for (k,v) in six.iteritems(self.properties)),
             ", ".join(repr(x) for x in self.content))
 
 
 
-class P(_PythonBase):
-    __metaclass__ = _MetaPythonBase()    
+class P(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
     pythType = Paragraph
 
 
-class LE(_PythonBase):
-    __metaclass__ = _MetaPythonBase()
+class LE(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
     pythType = ListEntry
 
-class L(_PythonBase):
-    __metaclass__ = _MetaPythonBase()    
+class L(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
     pythType = List
 
 
-class T(_PythonBase):
-    __metaclass__ = _MetaPythonBase()    
+class T(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
     __repr__ = _PythonBase.__str__
     pythType = Text
 

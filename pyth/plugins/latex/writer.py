@@ -4,6 +4,7 @@ Render documents as latex.
 For the moment we generate the latex document from the
 reStructuredText writer output.
 """
+from __future__ import absolute_import
 
 from cStringIO import StringIO
 import docutils.core

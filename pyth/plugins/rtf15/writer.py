@@ -4,6 +4,7 @@ Render documents as RTF 1.5
 http://www.biblioscape.com/rtf15_spec.htm
 """
 
+import binascii
 from pyth import document
 from pyth.format import PythWriter
 
@@ -55,12 +56,16 @@ class Rtf15Writer(PythWriter):
             document.List: self._list,
             document.Paragraph: self._paragraph
         }
+        self.paragraphContentDispatch = {
+            document.Text: self._text,
+            document.Image: self._image,
+        }
 
 
     def go(self):
         self.listLevel = -1
         self.addSpacing = None
-        
+
         self.target.write('{')
         self._writeHeader()
         self._writeDocument()
@@ -105,7 +110,7 @@ class Rtf15Writer(PythWriter):
         # We need Symbol for list bullets
         output.append(r'{\f%d\fnil\fprq0\fcharset128 Symbol;}' % (i+1))
         self.symbolFontNumber = i+1
-        
+
         output.append('}')
         return "".join(output)
 
@@ -138,7 +143,7 @@ class Rtf15Writer(PythWriter):
 
         output.append('}}')
         return "".join(output)
-    
+
 
     def _getListOverrides(self):
         # I have no idea what the point is of this,
@@ -153,7 +158,7 @@ class Rtf15Writer(PythWriter):
 
     # -----------------------------------------------
     # Document section
-    
+
 
     def _writeDocument(self):
 
@@ -193,14 +198,15 @@ class Rtf15Writer(PythWriter):
         if self.addSpacing is not None:
             self.target.write(r'\sb%d' % self.addSpacing)
             self.addSpacing = None
-        
+
         # Space after the paragraph,
         # expressed in units of god-knows-what
         self.target.write(r'\sa%d{' % spacing)
-        
-        for text in paragraph.content:
-            self._text(text)
-            
+
+        for item in paragraph.content:
+            handler = self.paragraphContentDispatch[item.__class__]
+            handler(item)
+
         self.target.write(r'}\par\pard' '\n')
 
 
@@ -241,23 +247,26 @@ class Rtf15Writer(PythWriter):
         for prop in text.properties:
             if prop in _styleFlags:
                 props.append(_styleFlags[prop])
-        
+
         if props:
             self.target.write("".join(props) + " ")
 
-        
-        for run in text.content:                    
+
+        for run in text.content:
             for unichar in run:
                 if unichar == '\n':
                     self.target.write(r'\line ')
                     continue
-
+                # Escape control characters
+                if unichar in '\\{}':
+                    self.target.write(r'\%s' % unichar)
+                    continue
                 point = ord(unichar)
                 if point < 128:
                     self.target.write(str(unichar))
                 else:
                     self.target.write(r'\u%d?' % point)
-            
+
         if props:
             self.target.write("".join("%s0" % p for p in props) + " ")
 
@@ -266,3 +275,21 @@ class Rtf15Writer(PythWriter):
 
         if 'url' in text.properties:
             self.target.write('}}')
+
+    def _image(self, image):
+        self.target.write(r'{\field{\*\fldinst{\f0\fs20\cf0 INCLUDEPICTURE  "cid:image001.png@01CDC656.1C7FFF50" \\* MERGEFORMATINET }}{\fldrslt{\*\shppict{\pict')
+        properties = "".join('\\' + prop + (val if val != True else '') for prop, val in image.properties.iteritems())
+        self.target.write(properties)
+        self.target.write(' \n')
+        image_data = binascii.hexlify(image.content[0])
+        for i in chunk(image_data):
+            self.target.write(i)
+            self.target.write('\n')
+        self.target.write(r'}}}}')
+
+def chunk(data, size=200):
+    length = len(data)
+    end = 0
+    while length > end:
+        end = end + size
+        yield data[end-size:end]

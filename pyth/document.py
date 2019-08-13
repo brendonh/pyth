@@ -7,7 +7,7 @@ class _PythBase(object):
     def __init__(self, properties={}, content=[]):
         self.properties = {}
         self.content = []
-        
+
         for (k,v) in properties.iteritems():
             self[k] = v
 
@@ -33,7 +33,7 @@ class _PythBase(object):
 
         If the item is of the wrong type, and if this element has a sub-type,
         then try to create such a sub-type and insert the item into that, instead.
-        
+
         This happens recursively, so (in python-markup):
           L [ u'Foo' ]
         actually creates:
@@ -51,7 +51,7 @@ class _PythBase(object):
                     okay = False
             else:
                 okay = False
-                
+
         if not okay:
             raise TypeError("Wrong content type for %s: %s (%s)" % (
                 self.__class__.__name__, repr(type(item)), repr(item)))
@@ -94,10 +94,10 @@ class Image(Paragraph):
     """
     An image is stored in bytes. All properties of images from the rtf definition are allowed.
     """
-    
-    validProperties = ('emfblip', 'pngblip', 'jpegblip', 'macpict', 'pmmetafile', 'wmetafile', 'dibitmap', 
-                       'wbitmap', 'wbmbitspixel', 'wbmplanes', 'wbmwidthbytes', 'picw', 'pich', 'picwgoal', 
-                       'pichgoal', 'picscalex', 'picscaley', 'picscaled', 'piccropt', 'piccropb', 'piccropr', 
+
+    validProperties = ('emfblip', 'pngblip', 'jpegblip', 'macpict', 'pmmetafile', 'wmetafile', 'dibitmap',
+                       'wbitmap', 'wbmbitspixel', 'wbmplanes', 'wbmwidthbytes', 'picw', 'pich', 'picwgoal',
+                       'pichgoal', 'picscalex', 'picscaley', 'picscaled', 'piccropt', 'piccropb', 'piccropr',
                        'piccropl', 'picbmp', 'picbpp', 'bin', 'blipupi', 'blipuid', 'bliptag', 'wbitmap')
     contentType = bytes
 
@@ -122,7 +122,7 @@ class List(Paragraph):
 
     validProperties = ()
     contentType = ListEntry
-    
+
 
 
 class Document(_PythBase):
@@ -130,6 +130,6 @@ class Document(_PythBase):
     Top-level item. One document is exactly one file.
     Documents consist of a list of paragraphs.
     """
-    
+
     validProperties = ('title', 'subject', 'author')
     contentType = Paragraph

@@ -53,6 +53,24 @@ class TestReadXHTML(unittest.TestCase):
         text = doc.content[0].content[0]
         assert text['italic']
 
+    def test_underline(self):
+        """
+        Try to read a paragraph containing underline
+        """
+        xhtml = "<div><p><u>sub</u></p></div>"
+        doc = XHTMLReader.read(xhtml)
+        text = doc.content[0].content[0]
+        assert text['underline']
+
+    def test_underline_styling(self):
+        """
+        Try to read a paragraph containing underline via CSS
+        """
+        xhtml = '<div><p style="text-decoration: underline;">underline</p></div>'
+        doc = XHTMLReader.read(xhtml)
+        text = doc.content[0].content[0]
+        assert text['underline']
+
     def test_sub(self):
         """
         Try to read a paragraph containing subscript
@@ -79,6 +97,22 @@ class TestReadXHTML(unittest.TestCase):
         doc = XHTMLReader.read(xhtml)
         text = doc.content[0].content[0]
         assert text['url'] == "http://google.com"
+
+    def test_inline_png(self):
+        pixels = 50
+        twips = pixels * 15
+        height = width = str(twips)  # in retrospect choosing a square image wasn't a great idea :)
+        with open('tests/html/sample-with-image.html', 'rb') as xhtml:
+            doc = XHTMLReader.read(xhtml)
+            image = next(node.content[0] for node in doc.content if isinstance(node.content[0], pyth.document.Image))
+            self.assertEquals(image.content[0][1:4], u'PNG')
+            self.assertEquals(image['pngblip'], True)
+            self.assertEquals(image['pich'], height)
+            self.assertEquals(image['pichgoal'], height)
+            self.assertEquals(image['picw'], width)
+            self.assertEquals(image['picwgoal'], width)
+            self.assertEquals(image['picscaley'], '100')
+            self.assertEquals(image['picscalex'], '100')
 
 
 if __name__ == '__main__':

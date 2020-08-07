@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from pyth.plugins.rtf15.reader import Rtf15Reader
 import sys
 
@@ -8,4 +10,4 @@ else:
 
 doc = Rtf15Reader.read(open(filename, "rb"))
 
-print [x.content for x in doc.content]
+print([x.content for x in doc.content])

@@ -1,6 +1,8 @@
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
 from pyth.plugins.python.reader import *
+import six
 
 def buildDoc():
     return PythonReader.read((        
@@ -9,7 +11,7 @@ def buildDoc():
        u", hee hee hee! ", T(url=u'http://www.google.com') [ u"This seems to work" ]
       ],
       L [
-       [unicode(word) for word in ("One", "Two", "Three", "Four")]
+       [six.text_type(word) for word in ("One", "Two", "Three", "Four")]
       ],
       L [
         u"Introduction",

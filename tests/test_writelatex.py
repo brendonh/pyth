@@ -1,13 +1,9 @@
 """
 unit tests of the latex writer
 """
+from __future__ import absolute_import
 
 import unittest
-import subprocess
-import tempfile
-import os
-import sys
-import BeautifulSoup
 
 from pyth.plugins.latex.writer import LatexWriter
 from pyth.plugins.python.reader import *

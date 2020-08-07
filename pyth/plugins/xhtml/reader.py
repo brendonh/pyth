@@ -1,8 +1,10 @@
 """
 Read documents from xhtml
 """
+from __future__ import absolute_import
 
-import BeautifulSoup
+from bs4 import BeautifulSoup
+import six
 
 from pyth import document
 from pyth.format import PythReader
@@ -23,10 +25,10 @@ class XHTMLReader(PythReader):
         self.link_callback = link_callback
 
     def go(self):
-        soup = BeautifulSoup.BeautifulSoup(self.source,
-                                           convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES,
-                                           fromEncoding=self.encoding,
-                                           smartQuotesTo=None)
+        soup = BeautifulSoup(self.source,
+                             convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES,
+                             fromEncoding=self.encoding,
+                             smartQuotesTo=None)
         # Make sure the document content doesn't use multi-lines
         soup = self.format(soup)
         doc = document.Document()
@@ -53,15 +55,15 @@ class XHTMLReader(PythReader):
         # Join the block elements lines into a single long line
         for tag in ['p', 'li']:
             for node in soup.findAll(tag):
-                text = unicode(node)
+                text = six.text_type(node)
                 lines = [x.strip() for x in text.splitlines()]
                 text = ' '.join(lines)
                 node.replaceWith(BeautifulSoup.BeautifulSoup(text))
-        soup = BeautifulSoup.BeautifulSoup(unicode(soup))
+        soup = BeautifulSoup.BeautifulSoup(six.text_type(soup))
         # replace all <br/> tag by newline character
         for node in soup.findAll('br'):
             node.replaceWith("\n")
-        soup = BeautifulSoup.BeautifulSoup(unicode(soup))
+        soup = BeautifulSoup.BeautifulSoup(six.text_type(soup))
         return soup
 
     def is_bold(self, node):

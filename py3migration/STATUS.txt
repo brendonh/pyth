@@ -1,0 +1,39 @@
+as of 2015-06-28:
+
+I have made the code nearly python2/python3-duocompatible by calling
+python-modernize.
+Comitted.
+
+I have inserted requires = ['six'] into setup.py
+Not committed.
+
+I have then repaired many of the bytes-vs-str issues in 
+pyth\plugins\rtf15\reader.py.
+Dito for pyth\plugins\xhtml\writer.py.
+The former in particular was tricky because most strings have to be handled
+as bytestrings -- but not all of them.
+See  http://pythonhosted.org/six/
+
+These two now appear to work correctly for simple RTF files (without
+images, tables, headers etc).
+Complex files remain to be tested.
+
+I have established a set of system-level test cases,
+with various input files with the relevant RTF features
+(paragraphs, line breaks, page breaks, various characters, fonts,
+ bold, italics, underline, hyperlink)
+and coming from MS Word, Wordpad, OpenOffice.
+They are handled correctly (as per comparison with how
+MS Word 2013 shows them) with one exception.
+
+TO DO:
+
+- For tests/rtfs/zh-cn, the conversion produces some additional
+text that is not shown in MS Word 2013.
+The RTF is very complicated, so I am not sure whether this is
+a defect or maybe the RTF is incorrect (but even then...).
+
+- Introduce proper handling of itemized lists (well, that is a
+new feature actually).
+
+- Debug the other plugins.

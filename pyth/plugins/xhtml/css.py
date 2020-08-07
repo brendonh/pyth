@@ -3,6 +3,7 @@
 Parse a css document into a python class that can be used to apply the
 style to a BeautifulSoup document.
 """
+from __future__ import absolute_import
 
 import re
 

@@ -1,10 +1,12 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 from pyth.plugins.xhtml.reader import XHTMLReader
 from pyth.plugins.xhtml.writer import XHTMLWriter
 import xhtml
 
-from cStringIO import StringIO
+from six import StringIO
 
 # A simple xhtml document with limited features.
 content = StringIO(r"""
@@ -49,4 +51,4 @@ if __name__ == '__main__':
     # Parse the document and then reconstruct it using the xhtml
     # writer.
     doc = XHTMLReader.read(content, css)
-    print XHTMLWriter.write(doc).getvalue()
+    print(XHTMLWriter.write(doc).getvalue())

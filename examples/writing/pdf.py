@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
 from pyth.plugins.rtf15.reader import Rtf15Reader

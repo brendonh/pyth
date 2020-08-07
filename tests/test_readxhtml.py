@@ -2,6 +2,7 @@
 """
 Unit tests of the xhtml reader.
 """
+from __future__ import absolute_import
 
 import unittest
 

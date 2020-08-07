@@ -1,11 +1,13 @@
 """
 Render documents as reStructuredText.
 """
+from __future__ import absolute_import
+import six
+from six import StringIO
 
 from pyth import document
 from pyth.format import PythWriter
 
-from cStringIO import StringIO
 
 
 class RSTWriter(PythWriter):
@@ -49,9 +51,9 @@ class RSTWriter(PythWriter):
         if 'italic' in text.properties:
             return u"*%s*" % ret
         if 'sub' in text.properties:
-            return ur"\ :sub:`%s`\ " % ret
+            return six.u(r"\ :sub:`%s`\ " % ret)
         if 'super' in text.properties:
-            return ur"\ :sup:`%s`\ " % ret
+            return six.u(r"\ :sup:`%s`\ " % ret)
         return ret
 
     def paragraph(self, paragraph, prefix=""):

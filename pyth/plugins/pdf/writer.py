@@ -1,8 +1,9 @@
 """
 Render documents as Reportlab PDF stories
 """
+from __future__ import absolute_import
 
-from cStringIO import StringIO
+from six import StringIO
 import cgi # For escape()
 
 from pyth import document
@@ -75,7 +76,7 @@ class PDFWriter(PythWriter):
         content = cgi.escape(u"".join(text.content))
 
         tags = []
-        for prop, value in text.properties.items():
+        for prop, value in list(text.properties.items()):
             if prop == "url":
                 tags.append((u'<u><link destination="%s" color="blue">' % value, u"</link></u>"))
             if prop in _tagNames:

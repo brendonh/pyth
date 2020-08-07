@@ -1,0 +1,500 @@
+--- pyth6\setup.py	(original)
++++ pyth6\setup.py	(refactored)
+@@ -1,3 +1,4 @@
++from __future__ import absolute_import
+ from setuptools import setup, find_packages
+ 
+ setup(name="pyth",
+--- pyth6\examples\reading\rtf15.py	(original)
++++ pyth6\examples\reading\rtf15.py	(refactored)
+@@ -1,3 +1,5 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ import sys
+ import os.path
+ 
+@@ -14,4 +16,4 @@
+ 
+ doc = Rtf15Reader.read(open(filename, "rb"))
+ 
+-print XHTMLWriter.write(doc, pretty=True).read()
++print(XHTMLWriter.write(doc, pretty=True).read())
+--- pyth6\examples\reading\sampleWithImage.py	(original)
++++ pyth6\examples\reading\sampleWithImage.py	(refactored)
+@@ -1,3 +1,5 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ from pyth.plugins.rtf15.reader import Rtf15Reader
+ import sys
+ 
+@@ -8,4 +10,4 @@
+ 
+ doc = Rtf15Reader.read(open(filename, "rb"))
+ 
+-print [x.content for x in doc.content]
++print([x.content for x in doc.content])
+--- pyth6\examples\reading\xhtml.py	(original)
++++ pyth6\examples\reading\xhtml.py	(refactored)
+@@ -1,3 +1,5 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ # -*- coding: utf-8 -*-
+ 
+ from pyth.plugins.xhtml.reader import XHTMLReader
+@@ -49,4 +51,4 @@
+     # Parse the document and then reconstruct it using the xhtml
+     # writer.
+     doc = XHTMLReader.read(content, css)
+-    print XHTMLWriter.write(doc).getvalue()
++    print(XHTMLWriter.write(doc).getvalue())
+--- pyth6\examples\writing\latex.py	(original)
++++ pyth6\examples\writing\latex.py	(refactored)
+@@ -1,6 +1,8 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ from pyth.plugins.latex.writer import LatexWriter
+ import pythonDoc
+ 
+ if __name__ == "__main__":
+     doc = pythonDoc.buildDoc()
+-    print LatexWriter.write(doc).getvalue()
++    print(LatexWriter.write(doc).getvalue())
+--- pyth6\examples\writing\pdf.py	(original)
++++ pyth6\examples\writing\pdf.py	(refactored)
+@@ -1,3 +1,4 @@
++from __future__ import absolute_import
+ # -*- coding: utf-8 -*-
+ 
+ from pyth.plugins.rtf15.reader import Rtf15Reader
+--- pyth6\examples\writing\plaintext.py	(original)
++++ pyth6\examples\writing\plaintext.py	(refactored)
+@@ -1,6 +1,8 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ from pyth.plugins.plaintext.writer import PlaintextWriter
+ import pythonDoc
+ 
+ doc = pythonDoc.buildDoc()
+ 
+-print PlaintextWriter.write(doc).getvalue()
++print(PlaintextWriter.write(doc).getvalue())
+--- pyth6\examples\writing\pythonDoc.py	(original)
++++ pyth6\examples\writing\pythonDoc.py	(refactored)
+@@ -1,6 +1,8 @@
++from __future__ import absolute_import
+ # -*- coding: utf-8 -*-
+ 
+ from pyth.plugins.python.reader import *
++import six
+ 
+ def buildDoc():
+     return PythonReader.read((        
+@@ -9,7 +11,7 @@
+        u", hee hee hee! ", T(url=u'http://www.google.com') [ u"This seems to work" ]
+       ],
+       L [
+-       [unicode(word) for word in ("One", "Two", "Three", "Four")]
++       [six.text_type(word) for word in ("One", "Two", "Three", "Four")]
+       ],
+       L [
+         u"Introduction",
+--- pyth6\examples\writing\rst.py	(original)
++++ pyth6\examples\writing\rst.py	(refactored)
+@@ -1,6 +1,8 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ from pyth.plugins.rst.writer import RSTWriter
+ import pythonDoc
+ 
+ if __name__ == "__main__":
+     doc = pythonDoc.buildDoc()
+-    print RSTWriter.write(doc).getvalue()
++    print(RSTWriter.write(doc).getvalue())
+--- pyth6\examples\writing\rtf15.py	(original)
++++ pyth6\examples\writing\rtf15.py	(refactored)
+@@ -1,6 +1,8 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ from pyth.plugins.rtf15.writer import Rtf15Writer
+ import pythonDoc
+ 
+ doc = pythonDoc.buildDoc()
+ 
+-print Rtf15Writer.write(doc).getvalue()
++print(Rtf15Writer.write(doc).getvalue())
+--- pyth6\examples\writing\xhtml.py	(original)
++++ pyth6\examples\writing\xhtml.py	(refactored)
+@@ -1,3 +1,5 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ from pyth.plugins.xhtml.writer import XHTMLWriter
+ import pythonDoc
+ 
+@@ -17,4 +19,4 @@
+ 
+ if __name__ == "__main__":
+     doc = pythonDoc.buildDoc()
+-    print docTemplate % XHTMLWriter.write(doc, pretty=True).getvalue()
++    print(docTemplate % XHTMLWriter.write(doc, pretty=True).getvalue())
+--- pyth6\pyth\__init__.py	(original)
++++ pyth6\pyth\__init__.py	(refactored)
+@@ -1,6 +1,7 @@
+ """
+ Pyth -- Python text markup and conversion
+ """
++from __future__ import absolute_import
+ 
+ import os.path
+ 
+--- pyth6\pyth\document.py	(original)
++++ pyth6\pyth\document.py	(refactored)
+@@ -1,6 +1,8 @@
+ """
+ Abstract document representation
+ """
++from __future__ import absolute_import
++import six
+ 
+ class _PythBase(object):
+ 
+@@ -8,7 +10,7 @@
+         self.properties = {}
+         self.content = []
+         
+-        for (k,v) in properties.iteritems():
++        for (k,v) in six.iteritems(properties):
+             self[k] = v
+ 
+         for item in content:
+@@ -70,7 +72,7 @@
+     """
+ 
+     validProperties = ('bold', 'italic', 'underline', 'url', 'sub', 'super', 'strike')
+-    contentType = unicode
++    contentType = six.text_type
+ 
+     def __repr__(self):
+         return "Text('%s' %s)" % ("".join("[%s]" % r.encode("utf-8") for r in self.content), self.properties)
+--- pyth6\pyth\encodings\symbol.py	(original)
++++ pyth6\pyth\encodings\symbol.py	(refactored)
+@@ -1,8 +1,11 @@
+ """ 
+ Maps Symbol typeface to Unicode, extracted from http://en.wikipedia.org/wiki/Symbol_(typeface)
+ """
++from __future__ import absolute_import
+ 
+ import codecs
++import six
++from six.moves import map
+ 
+ decodeTable = {
+     33: 33, 34: 8704, 35: 35, 36: 8707, 37: 37, 38: 38, 39: 8717, 40: 40, 41: 41, 42: 42, 43: 43, 44: 44, 45: 45, 46: 46,
+@@ -22,7 +25,7 @@
+     235: 9123, 236: 9127, 237: 9128, 238: 9129, 239: 9130, 241: 12297, 242: 8747, 243: 8992, 244: 9134, 245: 8993, 246: 9118,
+     247: 9119, 248: 9120, 249: 9124, 250: 9125, 251: 9126, 252: 9131, 253: 9132, 254: 9133}
+ 
+-encodeTable = dict((v, k) for (k, v) in decodeTable.iteritems())
++encodeTable = dict((v, k) for (k, v) in six.iteritems(decodeTable))
+ 
+ ERROR_STRING = "Ordinal not in range (255)"
+ 
+--- pyth6\pyth\plugins\latex\writer.py	(original)
++++ pyth6\pyth\plugins\latex\writer.py	(refactored)
+@@ -4,6 +4,7 @@
+ For the moment we generate the latex document from the
+ reStructuredText writer output.
+ """
++from __future__ import absolute_import
+ 
+ from cStringIO import StringIO
+ import docutils.core
+--- pyth6\pyth\plugins\pdf\writer.py	(original)
++++ pyth6\pyth\plugins\pdf\writer.py	(refactored)
+@@ -1,6 +1,7 @@
+ """
+ Render documents as Reportlab PDF stories
+ """
++from __future__ import absolute_import
+ 
+ from cStringIO import StringIO
+ import cgi # For escape()
+@@ -75,7 +76,7 @@
+         content = cgi.escape(u"".join(text.content))
+ 
+         tags = []
+-        for prop, value in text.properties.items():
++        for prop, value in list(text.properties.items()):
+             if prop == "url":
+                 tags.append((u'<u><link destination="%s" color="blue">' % value, u"</link></u>"))
+             if prop in _tagNames:
+--- pyth6\pyth\plugins\plaintext\writer.py	(original)
++++ pyth6\pyth\plugins\plaintext\writer.py	(refactored)
+@@ -1,6 +1,7 @@
+ """
+ Render documents as plaintext.
+ """
++from __future__ import absolute_import
+ 
+ from pyth import document
+ from pyth.format import PythWriter
+--- pyth6\pyth\plugins\python\reader.py	(original)
++++ pyth6\pyth\plugins\python\reader.py	(refactored)
+@@ -1,9 +1,11 @@
+ """
+ Write Pyth documents straight in Python, a la Nevow's Stan.
+ """
++from __future__ import absolute_import
+ 
+ from pyth.format import PythReader
+ from pyth.document import *
++import six
+ 
+ 
+ def _convert(content):
+@@ -88,27 +90,23 @@
+     def __str__(self):
+         return "%s(%s) [ %s ]" % (
+             self.__class__.__name__,
+-            ", ".join("%s=%s" % (k, repr(v)) for (k,v) in self.properties.iteritems()),
++            ", ".join("%s=%s" % (k, repr(v)) for (k,v) in six.iteritems(self.properties)),
+             ", ".join(repr(x) for x in self.content))
+ 
+ 
+ 
+-class P(_PythonBase):
+-    __metaclass__ = _MetaPythonBase()    
++class P(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
+     pythType = Paragraph
+ 
+ 
+-class LE(_PythonBase):
+-    __metaclass__ = _MetaPythonBase()
++class LE(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
+     pythType = ListEntry
+ 
+-class L(_PythonBase):
+-    __metaclass__ = _MetaPythonBase()    
++class L(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
+     pythType = List
+ 
+ 
+-class T(_PythonBase):
+-    __metaclass__ = _MetaPythonBase()    
++class T(six.with_metaclass(_MetaPythonBase(), _PythonBase)):
+     __repr__ = _PythonBase.__str__
+     pythType = Text
+ 
+--- pyth6\pyth\plugins\rst\writer.py	(original)
++++ pyth6\pyth\plugins\rst\writer.py	(refactored)
+@@ -1,6 +1,7 @@
+ """
+ Render documents as reStructuredText.
+ """
++from __future__ import absolute_import
+ 
+ from pyth import document
+ from pyth.format import PythWriter
+--- pyth6\pyth\plugins\rtf15\reader.py	(original)
++++ pyth6\pyth\plugins\rtf15\reader.py	(refactored)
+@@ -6,11 +6,13 @@
+ This module is potentially compatible with RTF versions up to 1.9.1,
+ but may not ignore all necessary control groups.
+ """
++from __future__ import absolute_import
+ import string, re, itertools, struct
+ 
+ from pyth import document
+ from pyth.format import PythReader
+ from pyth.encodings import symbol
++import six
+ 
+ _CONTROLCHARS = set(string.ascii_letters + string.digits + "-*")
+ _DIGITS = set(string.digits + "-")
+@@ -543,7 +545,7 @@
+     def handle_control_symbol(self, symbol):
+         # Ignore ~, -, and _, since they are optional crap.
+         if symbol in '\\{}':
+-            self.content.append(unicode(symbol))
++            self.content.append(six.text_type(symbol))
+ 
+ 
+     def handle_u(self, codepoint):
+--- pyth6\pyth\plugins\rtf15\writer.py	(original)
++++ pyth6\pyth\plugins\rtf15\writer.py	(refactored)
+@@ -3,11 +3,14 @@
+ 
+ http://www.biblioscape.com/rtf15_spec.htm
+ """
++from __future__ import absolute_import
+ 
+ from pyth import document
+ from pyth.format import PythWriter
+ 
+ from cStringIO import StringIO
++import six
++from six.moves import range
+ 
+ 
+ # XXX Todo -- Make these parameters
+@@ -97,7 +100,7 @@
+ 
+     def _getFontTable(self):
+         output = [r'{\fonttbl']
+-        for i, (fontFamily, fontName) in enumerate(self.fonts.iteritems()):
++        for i, (fontFamily, fontName) in enumerate(six.iteritems(self.fonts)):
+             output.append(r'{\f%d\f%s %s;}' % (i, fontFamily, fontName))
+             if fontFamily == self.fontFamily:
+                 self.fontNumber = i
+--- pyth6\pyth\plugins\xhtml\css.py	(original)
++++ pyth6\pyth\plugins\xhtml\css.py	(refactored)
+@@ -3,6 +3,7 @@
+ Parse a css document into a python class that can be used to apply the
+ style to a BeautifulSoup document.
+ """
++from __future__ import absolute_import
+ 
+ import re
+ 
+--- pyth6\pyth\plugins\xhtml\reader.py	(original)
++++ pyth6\pyth\plugins\xhtml\reader.py	(refactored)
+@@ -1,12 +1,14 @@
+ """
+ Read documents from xhtml
+ """
++from __future__ import absolute_import
+ 
+ import BeautifulSoup
+ 
+ from pyth import document
+ from pyth.format import PythReader
+ from pyth.plugins.xhtml.css import CSS
++import six
+ 
+ 
+ class XHTMLReader(PythReader):
+@@ -53,15 +55,15 @@
+         # Join the block elements lines into a single long line
+         for tag in ['p', 'li']:
+             for node in soup.findAll(tag):
+-                text = unicode(node)
++                text = six.text_type(node)
+                 lines = [x.strip() for x in text.splitlines()]
+                 text = ' '.join(lines)
+                 node.replaceWith(BeautifulSoup.BeautifulSoup(text))
+-        soup = BeautifulSoup.BeautifulSoup(unicode(soup))
++        soup = BeautifulSoup.BeautifulSoup(six.text_type(soup))
+         # replace all <br/> tag by newline character
+         for node in soup.findAll('br'):
+             node.replaceWith("\n")
+-        soup = BeautifulSoup.BeautifulSoup(unicode(soup))
++        soup = BeautifulSoup.BeautifulSoup(six.text_type(soup))
+         return soup
+ 
+     def is_bold(self, node):
+--- pyth6\pyth\plugins\xhtml\writer.py	(original)
++++ pyth6\pyth\plugins\xhtml\writer.py	(refactored)
+@@ -1,6 +1,7 @@
+ """
+ Render documents as XHTML fragments
+ """
++from __future__ import absolute_import
+ 
+ 
+ 
+@@ -8,6 +9,7 @@
+ from pyth.format import PythWriter
+ 
+ from cStringIO import StringIO
++import six
+ 
+ 
+ _tagNames = {
+@@ -160,7 +162,7 @@
+     def attrString(self):
+         return " ".join(
+             '%s="%s"' % (k, quoteAttr(v))
+-            for (k, v) in self.attrs.iteritems())
++            for (k, v) in six.iteritems(self.attrs))
+             
+ 
+     def __repr__(self):
+--- pyth6\tests\test_readrtf15.py	(original)
++++ pyth6\tests\test_readrtf15.py	(refactored)
+@@ -1,9 +1,12 @@
++from __future__ import absolute_import
++from __future__ import print_function
+ import unittest
+ import os.path
+ import glob
+ 
+ import pyth.document
+ from pyth.plugins.rtf15.reader import Rtf15Reader
++import six
+ 
+ class TestRtfMeta(type):
+     def __new__(meta, name, bases, dict):
+@@ -20,13 +23,12 @@
+         for path in files:
+             name = os.path.splitext(os.path.basename(path))[0]
+             dict["test_%s" % name] = gen_file_test(path, name)
+-            print path, name
++            print(path, name)
+ 
+         return type.__new__(meta, name, bases, dict)
+ 
+ 
+-class TestRtfFile(unittest.TestCase):
+-    __metaclass__ = TestRtfMeta
++class TestRtfFile(six.with_metaclass(TestRtfMeta, unittest.TestCase)):
+     pass
+ 
+ 
+--- pyth6\tests\test_readxhtml.py	(original)
++++ pyth6\tests\test_readxhtml.py	(refactored)
+@@ -2,6 +2,7 @@
+ """
+ Unit tests of the xhtml reader.
+ """
++from __future__ import absolute_import
+ 
+ import unittest
+ 
+--- pyth6\tests\test_writelatex.py	(original)
++++ pyth6\tests\test_writelatex.py	(refactored)
+@@ -1,6 +1,7 @@
+ """
+ unit tests of the latex writer
+ """
++from __future__ import absolute_import
+ 
+ import unittest
+ import subprocess
+--- pyth6\tests\test_writepdf.py	(original)
++++ pyth6\tests\test_writepdf.py	(refactored)
+@@ -1,6 +1,8 @@
+ """
+ unit tests of the pdf writer
+ """
++from __future__ import absolute_import
++from __future__ import print_function
+ 
+ import unittest
+ import subprocess
+@@ -35,7 +37,7 @@
+             try:
+                 proc = subprocess.Popen(command, stdout=subprocess.PIPE)
+             except OSError:
+-                print "Make sure that pdftohtml is installed"
++                print("Make sure that pdftohtml is installed")
+                 raise
+             ret = proc.communicate()[0]
+             return ret
+@@ -87,7 +89,7 @@
+     def test_rst(self):
+         doc = PythonReader.read(P[u"the-text"])
+         pdf = PDFWriter.write(doc).getvalue()
+-        print pdf
++        print(pdf)
+         html = self.pdf_to_html(pdf)
+         assert "the-text" in html, html
+ 
